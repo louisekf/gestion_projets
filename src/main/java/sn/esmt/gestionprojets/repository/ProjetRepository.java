@@ -2,6 +2,7 @@ package sn.esmt.gestionprojets.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import sn.esmt.gestionprojets.entity.DomaineRecherche;
 import sn.esmt.gestionprojets.entity.Projet;
@@ -44,6 +45,15 @@ public interface ProjetRepository extends JpaRepository<Projet, Long> {
      */
     @Query("SELECT YEAR(p.dateDebut), COUNT(p) FROM Projet p GROUP BY YEAR(p.dateDebut) ORDER BY YEAR(p.dateDebut)")
     List<Object[]> countProjectsGroupByYear();
+
+    /**
+     * Récupère TOUS les projets d'un utilisateur :
+     * ceux dont il est responsable + ceux où il est participant.
+     */
+    @Query("SELECT DISTINCT p FROM Projet p " +
+            "WHERE p.responsable = :user " +
+            "OR :user MEMBER OF p.participants")
+    List<Projet> findAllProjectsOfUser(@Param("user") User user);
 
     /**
      * Charge des participants et nombre de projets associés.

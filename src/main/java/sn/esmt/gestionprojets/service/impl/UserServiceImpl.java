@@ -1,30 +1,29 @@
 package sn.esmt.gestionprojets.service.impl;
-
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import sn.esmt.gestionprojets.entity.Role;
 import sn.esmt.gestionprojets.entity.User;
+import sn.esmt.gestionprojets.exceptions.BusinessException;
+import sn.esmt.gestionprojets.exceptions.ResourceNotFoundException;
 import sn.esmt.gestionprojets.repository.UserRepository;
 import sn.esmt.gestionprojets.service.UserService;
 
 import java.util.List;
 
+/**
+ * Service utilisateur AMÉLIORÉ avec exceptions personnalisées.
+ */
 @Service
 @Transactional
+@RequiredArgsConstructor
 @Slf4j
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-
-    @Autowired
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     @Override
     public List<User> findAll() {
@@ -34,64 +33,58 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable avec l'ID : " + id));
+                .orElseThrow(() -> ResourceNotFoundException.user(id));
     }
 
     @Override
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable avec l'email : " + email));
+                .orElseThrow(() -> ResourceNotFoundException.userByEmail(email));
     }
 
-    /**
-     * Enregistre un nouvel utilisateur.
-     * IMPORTANT : le mot de passe est encodé en BCrypt AVANT la sauvegarde.
-     * On ne stocke JAMAIS un mot de passe en clair en base de données.
-     */
     @Override
     public User register(User user) {
+        // Vérifications métier avec exceptions personnalisées
         if (userRepository.existsByEmail(user.getEmail())) {
-            throw new RuntimeException("L'email '" + user.getEmail() + "' est déjà utilisé.");
+            throw BusinessException.emailAlreadyExists(user.getEmail());
         }
         if (userRepository.existsByUsername(user.getUsername())) {
-            throw new RuntimeException("Le nom d'utilisateur '" + user.getUsername() + "' est déjà pris.");
+            throw BusinessException.usernameAlreadyExists(user.getUsername());
         }
 
+        // Encodage du mot de passe
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
+        // Valeurs par défaut
         if (user.getRole() == null) {
             user.setRole(Role.USER);
         }
         user.setEnabled(true);
 
         User saved = userRepository.save(user);
-        log.info("Nouvel utilisateur enregistré : {} ({})", saved.getEmail(), saved.getRole());
+        log.info("Utilisateur enregistré : {} ({})", saved.getEmail(), saved.getRole());
         return saved;
     }
 
-    /**
-     * Met à jour le profil d'un utilisateur.
-     * On ne touche PAS au mot de passe ni au rôle ici (méthodes séparées).
-     */
     @Override
     public User update(Long id, User updatedUser) {
         User existing = findById(id);
 
+        // Vérification email uniquement si changé
         if (!existing.getEmail().equals(updatedUser.getEmail())
                 && userRepository.existsByEmail(updatedUser.getEmail())) {
-            throw new RuntimeException("L'email '" + updatedUser.getEmail() + "' est déjà utilisé.");
+            throw BusinessException.emailAlreadyExists(updatedUser.getEmail());
         }
 
+        existing.setEmail(updatedUser.getEmail());
         existing.setNom(updatedUser.getNom());
         existing.setPrenom(updatedUser.getPrenom());
-        existing.setEmail(updatedUser.getEmail());
         existing.setTelephone(updatedUser.getTelephone());
         existing.setInstitution(updatedUser.getInstitution());
 
-        log.info("Profil mis à jour pour l'utilisateur : {}", existing.getEmail());
+        log.info("Profil mis à jour : {}", existing.getEmail());
         return userRepository.save(existing);
     }
-
 
     @Override
     public User changeRole(Long id, Role newRole) {
@@ -106,7 +99,7 @@ public class UserServiceImpl implements UserService {
     public User toggleEnabled(Long id) {
         User user = findById(id);
         user.setEnabled(!user.isEnabled());
-        log.info("Compte {} : statut changé à enabled={}", user.getEmail(), user.isEnabled());
+        log.info("Compte {} : enabled={}", user.getEmail(), user.isEnabled());
         return userRepository.save(user);
     }
 
@@ -126,4 +119,5 @@ public class UserServiceImpl implements UserService {
     public boolean usernameExists(String username) {
         return userRepository.existsByUsername(username);
     }
+
 }

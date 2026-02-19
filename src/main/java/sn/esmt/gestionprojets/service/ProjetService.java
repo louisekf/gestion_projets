@@ -1,8 +1,7 @@
 package sn.esmt.gestionprojets.service;
 
-import sn.esmt.gestionprojets.dto.ProjetDTO;
+import sn.esmt.gestionprojets.dto.request.ProjetRequest;
 import sn.esmt.gestionprojets.entity.Projet;
-import sn.esmt.gestionprojets.entity.User;
 
 import java.util.List;
 
@@ -12,9 +11,9 @@ public interface ProjetService {
 
     Projet findById(Long id);
 
-    Projet create(ProjetDTO dto);
+    Projet create(ProjetRequest dto);
 
-    Projet update(Long id, ProjetDTO dto);
+    Projet update(Long id, ProjetRequest dto);
 
     void delete(Long id);
 
