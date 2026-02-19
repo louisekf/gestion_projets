@@ -11,35 +11,30 @@ import java.util.stream.Collectors;
 
 /**
  * Mapper pour convertir User ↔ DTOs.
- *
- * Pourquoi ne pas utiliser MapStruct ?
- * → Pour un projet académique, du code manuel est plus pédagogique.
- * → MapStruct ajoute une dépendance et de la configuration supplémentaire.
- * → On garde le contrôle total de chaque conversion.
  */
 @Component
 public class UserMapper {
 
     /**
-     * Convertit une entité User en UserResponse (pour l'API / templates).
-     * N'expose JAMAIS le mot de passe.
+     * Convertit une entité User en UserResponse.
      */
     public UserResponse toResponse(User user) {
         if (user == null) return null;
 
-        return UserResponse.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .nom(user.getNom())
-                .prenom(user.getPrenom())
-                .nomComplet(user.getNomComplet())
-                .telephone(user.getTelephone())
-                .institution(user.getInstitution())
-                .role(user.getRole())
-                .enabled(user.isEnabled())
-                .createdAt(user.getCreatedAt())
-                .build();
+        UserResponse response = new UserResponse();
+        response.setId(user.getId());
+        response.setUsername(user.getUsername());
+        response.setEmail(user.getEmail());
+        response.setNom(user.getNom());
+        response.setPrenom(user.getPrenom());
+        response.setNomComplet(user.getNomComplet());
+        response.setTelephone(user.getTelephone());
+        response.setInstitution(user.getInstitution());
+        response.setRole(user.getRole());
+        response.setEnabled(user.isEnabled());
+        response.setCreatedAt(user.getCreatedAt());
+
+        return response;
     }
 
     /**
@@ -52,27 +47,26 @@ public class UserMapper {
     }
 
     /**
-     * Convertit un UserRegisterRequest en entité User (pour la création).
-     * Le mot de passe sera encodé dans le service.
+     * Convertit un UserRegisterRequest en entité User.
      */
     public User toEntity(UserRegisterRequest request) {
         if (request == null) return null;
 
-        return User.builder()
-                .username(request.getUsername())
-                .email(request.getEmail())
-                .password(request.getPassword()) // Sera encodé par le service
-                .nom(request.getNom())
-                .prenom(request.getPrenom())
-                .telephone(request.getTelephone())
-                .institution(request.getInstitution())
-                .role(request.getRole()) // Peut être null → USER par défaut
-                .build();
+        User user = new User();
+        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
+        user.setPassword(request.getPassword()); // Sera encodé par le service
+        user.setNom(request.getNom());
+        user.setPrenom(request.getPrenom());
+        user.setTelephone(request.getTelephone());
+        user.setInstitution(request.getInstitution());
+        user.setRole(request.getRole()); // Peut être null → USER par défaut
+
+        return user;
     }
 
     /**
-     * Met à jour une entité User existante avec les données d'un UserUpdateRequest.
-     * Ne touche PAS au mot de passe ni au rôle.
+     * Met à jour une entité User existante.
      */
     public void updateEntityFromRequest(User user, UserUpdateRequest request) {
         if (user == null || request == null) return;

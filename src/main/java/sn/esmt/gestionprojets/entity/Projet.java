@@ -1,6 +1,7 @@
 package sn.esmt.gestionprojets.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import sn.esmt.gestionprojets.entity.enums.StatutProjet;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

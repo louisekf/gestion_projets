@@ -1,10 +1,10 @@
 package sn.esmt.gestionprojets.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import sn.esmt.gestionprojets.dto.StatisticsDTO;
-import sn.esmt.gestionprojets.entity.StatutProjet;
+import sn.esmt.gestionprojets.entity.enums.StatutProjet;
 import sn.esmt.gestionprojets.repository.ProjetRepository;
 
 import java.math.BigDecimal;
@@ -14,66 +14,62 @@ import java.util.Map;
 
 /**
  * Service dédié au calcul des statistiques pour le tableau de bord.
- *
- * Accédé uniquement par les MANAGER et ADMIN (contrôle fait dans le controller).
- *
- * Toutes les données viennent des requêtes JPQL définies dans ProjectRepository.
  */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class StatisticsService {
+
+    private static final Logger log = LoggerFactory.getLogger(StatisticsService.class);
 
     private final ProjetRepository projectRepository;
 
+    // Constructeur explicite
+    public StatisticsService(ProjetRepository projectRepository) {
+        this.projectRepository = projectRepository;
+    }
+
     /**
      * Calcule et retourne l'ensemble des statistiques en une seule fois.
-     * Le résultat est encapsulé dans un StatisticsDTO prêt à être
-     * passé au template Thymeleaf ou retourné en JSON.
      */
     public StatisticsDTO computeAll() {
         log.debug("Calcul des statistiques globales...");
 
-        return StatisticsDTO.builder()
-                // -- Chiffres bruts --
-                .totalProjets(projectRepository.count())
-                .projetsEnCours(projectRepository.countByStatut(StatutProjet.EN_COURS))
-                .projetsTermines(projectRepository.countByStatut(StatutProjet.TERMINE))
-                .projetsSuspendus(projectRepository.countByStatut(StatutProjet.SUSPENDU))
-                .tauxMoyenAvancement(getAverageAvancement())
+        StatisticsDTO stats = new StatisticsDTO();
 
-                // -- Données graphiques --
-                .projetsByDomaine(getProjetsByDomaine())
-                .projetsByStatut(getProjetsByStatut())
-                .projetsByYear(getProjetsByYear())
-                .chargeByParticipant(getChargeByParticipant())
-                .budgetByDomaine(getBudgetByDomaine())
+        // -- Chiffres bruts --
+        stats.setTotalProjets(projectRepository.count());
+        stats.setProjetsEnCours(projectRepository.countByStatut(StatutProjet.EN_COURS));
+        stats.setProjetsTermines(projectRepository.countByStatut(StatutProjet.TERMINE));
+        stats.setProjetsSuspendus(projectRepository.countByStatut(StatutProjet.SUSPENDU));
+        stats.setTauxMoyenAvancement(getAverageAvancement());
 
-                .build();
+        // -- Données graphiques --
+        stats.setProjetsByDomaine(getProjetsByDomaine());
+        stats.setProjetsByStatut(getProjetsByStatut());
+        stats.setProjetsByYear(getProjetsByYear());
+        stats.setChargeByParticipant(getChargeByParticipant());
+        stats.setBudgetByDomaine(getBudgetByDomaine());
+
+        return stats;
     }
 
     // -------------------------------------------------------
     // Méthodes privées : transformation des résultats bruts
-    // en Maps utilisables dans les templates / graphiques
     // -------------------------------------------------------
 
     /**
      * Taux moyen d'avancement des projets EN_COURS.
-     * Retourne 0.0 si aucun projet en cours (évite NullPointerException).
      */
     private double getAverageAvancement() {
         Double avg = projectRepository.findAverageAvancement();
-        return avg != null ? Math.round(avg * 10.0) / 10.0 : 0.0; // arrondi à 1 décimale
+        return avg != null ? Math.round(avg * 10.0) / 10.0 : 0.0;
     }
 
     /**
      * Graphique 1 – Projets par domaine.
-     * Transforme List<Object[]> en Map<String, Long>
-     * Object[0] = nomDomaine (String), Object[1] = count (Long)
      */
     private Map<String, Long> getProjetsByDomaine() {
         List<Object[]> results = projectRepository.countProjectsGroupByDomaine();
-        Map<String, Long> map = new LinkedHashMap<>(); // LinkedHashMap conserve l'ordre d'insertion
+        Map<String, Long> map = new LinkedHashMap<>();
         for (Object[] row : results) {
             map.put((String) row[0], (Long) row[1]);
         }
@@ -82,8 +78,6 @@ public class StatisticsService {
 
     /**
      * Graphique 2 – Répartition par statut.
-     * Object[0] = StatutProjet (Enum), Object[1] = count (Long)
-     * On convertit l'enum en String lisible.
      */
     private Map<String, Long> getProjetsByStatut() {
         List<Object[]> results = projectRepository.countProjectsGroupByStatut();
@@ -102,7 +96,6 @@ public class StatisticsService {
 
     /**
      * Graphique 3 – Évolution temporelle.
-     * Object[0] = année (Integer), Object[1] = count (Long)
      */
     private Map<Integer, Long> getProjetsByYear() {
         List<Object[]> results = projectRepository.countProjectsGroupByYear();
@@ -115,7 +108,6 @@ public class StatisticsService {
 
     /**
      * Graphique 4 – Charge des participants.
-     * Object[0] = nomComplet (String), Object[1] = count (Long)
      */
     private Map<String, Long> getChargeByParticipant() {
         List<Object[]> results = projectRepository.countProjectsGroupByParticipant();
@@ -127,8 +119,7 @@ public class StatisticsService {
     }
 
     /**
-     * Budget total par domaine (graphique complémentaire).
-     * Object[0] = nomDomaine (String), Object[1] = budgetTotal (BigDecimal)
+     * Budget total par domaine.
      */
     private Map<String, BigDecimal> getBudgetByDomaine() {
         List<Object[]> results = projectRepository.sumBudgetGroupByDomaine();
@@ -138,5 +129,4 @@ public class StatisticsService {
         }
         return map;
     }
-
 }

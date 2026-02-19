@@ -1,11 +1,7 @@
 package sn.esmt.gestionprojets.dto.request;
 
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import sn.esmt.gestionprojets.entity.StatutProjet;
+import sn.esmt.gestionprojets.entity.enums.StatutProjet;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -13,12 +9,7 @@ import java.util.List;
 
 /**
  * DTO pour la création/modification d'un projet.
- * Remplace l'ancien ProjectDTO.
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class ProjetRequest {
 
     @NotBlank(message = "Le titre est obligatoire")
@@ -47,6 +38,90 @@ public class ProjetRequest {
     @NotNull(message = "Le domaine est obligatoire")
     private Long domaineId;
 
-    // IDs des participants (MANAGER/ADMIN uniquement)
     private List<Long> participantIds;
+
+    // Constructeur vide
+    public ProjetRequest() {
+    }
+
+    // Getters et Setters
+    public String getTitre() {
+        return titre;
+    }
+
+    public void setTitre(String titre) {
+        this.titre = titre;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public LocalDate getDateDebut() {
+        return dateDebut;
+    }
+
+    public void setDateDebut(LocalDate dateDebut) {
+        this.dateDebut = dateDebut;
+    }
+
+    public LocalDate getDateFin() {
+        return dateFin;
+    }
+
+    public void setDateFin(LocalDate dateFin) {
+        this.dateFin = dateFin;
+    }
+
+    public StatutProjet getStatut() {
+        return statut;
+    }
+
+    public void setStatut(StatutProjet statut) {
+        this.statut = statut;
+    }
+
+    public BigDecimal getBudgetEstime() {
+        return budgetEstime;
+    }
+
+    public void setBudgetEstime(BigDecimal budgetEstime) {
+        this.budgetEstime = budgetEstime;
+    }
+
+    public String getInstitution() {
+        return institution;
+    }
+
+    public void setInstitution(String institution) {
+        this.institution = institution;
+    }
+
+    public Integer getNiveauAvancement() {
+        return niveauAvancement;
+    }
+
+    public void setNiveauAvancement(Integer niveauAvancement) {
+        this.niveauAvancement = niveauAvancement;
+    }
+
+    public Long getDomaineId() {
+        return domaineId;
+    }
+
+    public void setDomaineId(Long domaineId) {
+        this.domaineId = domaineId;
+    }
+
+    public List<Long> getParticipantIds() {
+        return participantIds;
+    }
+
+    public void setParticipantIds(List<Long> participantIds) {
+        this.participantIds = participantIds;
+    }
 }

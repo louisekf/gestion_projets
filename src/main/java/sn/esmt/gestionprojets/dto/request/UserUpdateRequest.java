@@ -1,19 +1,10 @@
 package sn.esmt.gestionprojets.dto.request;
 
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * DTO pour la mise à jour du profil utilisateur.
- * Ne contient PAS le mot de passe ni le rôle (méthodes séparées).
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class UserUpdateRequest {
 
     @NotBlank(message = "L'email est obligatoire")
@@ -30,4 +21,58 @@ public class UserUpdateRequest {
     private String telephone;
 
     private String institution;
+
+    // Constructeur vide
+    public UserUpdateRequest() {
+    }
+
+    // Constructeur avec tous les paramètres
+    public UserUpdateRequest(String email, String nom, String prenom, String telephone, String institution) {
+        this.email = email;
+        this.nom = nom;
+        this.prenom = prenom;
+        this.telephone = telephone;
+        this.institution = institution;
+    }
+
+    // Getters et Setters
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getNom() {
+        return nom;
+    }
+
+    public void setNom(String nom) {
+        this.nom = nom;
+    }
+
+    public String getPrenom() {
+        return prenom;
+    }
+
+    public void setPrenom(String prenom) {
+        this.prenom = prenom;
+    }
+
+    public String getTelephone() {
+        return telephone;
+    }
+
+    public void setTelephone(String telephone) {
+        this.telephone = telephone;
+    }
+
+    public String getInstitution() {
+        return institution;
+    }
+
+    public void setInstitution(String institution) {
+        this.institution = institution;
+    }
 }

@@ -2,6 +2,7 @@ package sn.esmt.gestionprojets.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import sn.esmt.gestionprojets.entity.enums.Role;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

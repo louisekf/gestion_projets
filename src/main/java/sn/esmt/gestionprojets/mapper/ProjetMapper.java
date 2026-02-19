@@ -1,6 +1,5 @@
 package sn.esmt.gestionprojets.mapper;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import sn.esmt.gestionprojets.dto.request.ProjetRequest;
 import sn.esmt.gestionprojets.dto.response.ProjetResponse;
@@ -11,14 +10,18 @@ import java.util.stream.Collectors;
 
 /**
  * Mapper pour Project ↔ DTOs.
- * Injecte les autres mappers pour gérer les relations.
  */
 @Component
-@RequiredArgsConstructor
 public class ProjetMapper {
 
     private final UserMapper userMapper;
     private final DomaineRechercheMapper domaineMapper;
+
+    // Constructeur explicite
+    public ProjetMapper(UserMapper userMapper, DomaineRechercheMapper domaineMapper) {
+        this.userMapper = userMapper;
+        this.domaineMapper = domaineMapper;
+    }
 
     /**
      * Convertit Project → ProjectResponse (avec relations complètes).
@@ -26,23 +29,26 @@ public class ProjetMapper {
     public ProjetResponse toResponse(Projet project) {
         if (project == null) return null;
 
-        return ProjetResponse.builder()
-                .id(project.getId())
-                .titre(project.getTitre())
-                .description(project.getDescription())
-                .dateDebut(project.getDateDebut())
-                .dateFin(project.getDateFin())
-                .statut(project.getStatut())
-                .budgetEstime(project.getBudgetEstime())
-                .institution(project.getInstitution())
-                .niveauAvancement(project.getNiveauAvancement())
-                .createdAt(project.getCreatedAt())
-                .updatedAt(project.getUpdatedAt())
-                // Relations
-                .domaine(domaineMapper.toResponse(project.getDomaine()))
-                .responsable(userMapper.toResponse(project.getResponsable()))
-                .participants(userMapper.toResponseList(project.getParticipants()))
-                .build();
+        // Création de la réponse avec les setters (plus de builder)
+        ProjetResponse response = new ProjetResponse();
+        response.setId(project.getId());
+        response.setTitre(project.getTitre());
+        response.setDescription(project.getDescription());
+        response.setDateDebut(project.getDateDebut());
+        response.setDateFin(project.getDateFin());
+        response.setStatut(project.getStatut());
+        response.setBudgetEstime(project.getBudgetEstime());
+        response.setInstitution(project.getInstitution());
+        response.setNiveauAvancement(project.getNiveauAvancement());
+        response.setCreatedAt(project.getCreatedAt());
+        response.setUpdatedAt(project.getUpdatedAt());
+
+        // Relations (via les autres mappers)
+        response.setDomaine(domaineMapper.toResponse(project.getDomaine()));
+        response.setResponsable(userMapper.toResponse(project.getResponsable()));
+        response.setParticipants(userMapper.toResponseList(project.getParticipants()));
+
+        return response;
     }
 
     public List<ProjetResponse> toResponseList(List<Projet> projects) {
@@ -53,26 +59,25 @@ public class ProjetMapper {
 
     /**
      * Convertit ProjectRequest → Project (création).
-     * Les relations (domaine, responsable, participants) sont affectées dans le service.
      */
     public Projet toEntity(ProjetRequest request) {
         if (request == null) return null;
 
-        return Projet.builder()
-                .titre(request.getTitre())
-                .description(request.getDescription())
-                .dateDebut(request.getDateDebut())
-                .dateFin(request.getDateFin())
-                .statut(request.getStatut())
-                .budgetEstime(request.getBudgetEstime())
-                .institution(request.getInstitution())
-                .niveauAvancement(request.getNiveauAvancement() != null ? request.getNiveauAvancement() : 0)
-                .build();
+        Projet projet = new Projet();
+        projet.setTitre(request.getTitre());
+        projet.setDescription(request.getDescription());
+        projet.setDateDebut(request.getDateDebut());
+        projet.setDateFin(request.getDateFin());
+        projet.setStatut(request.getStatut());
+        projet.setBudgetEstime(request.getBudgetEstime());
+        projet.setInstitution(request.getInstitution());
+        projet.setNiveauAvancement(request.getNiveauAvancement() != null ? request.getNiveauAvancement() : 0);
+
+        return projet;
     }
 
     /**
      * Met à jour un Project existant avec les données du ProjectRequest.
-     * Les relations sont gérées dans le service.
      */
     public void updateEntityFromRequest(Projet project, ProjetRequest request) {
         if (project == null || request == null) return;
@@ -86,5 +91,4 @@ public class ProjetMapper {
         project.setInstitution(request.getInstitution());
         project.setNiveauAvancement(request.getNiveauAvancement());
     }
-
 }

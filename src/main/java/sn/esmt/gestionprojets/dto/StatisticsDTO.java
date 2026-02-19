@@ -1,22 +1,11 @@
 package sn.esmt.gestionprojets.dto;
 
-import lombok.*;
-
 import java.math.BigDecimal;
 import java.util.Map;
 
 /**
  * DTO regroupant toutes les statistiques du tableau de bord.
- * Passé directement au template Thymeleaf (ou retourné en JSON via l'API).
- *
- * Conçu pour être construit une fois par StatisticsService et utilisé
- * par les templates sans appel supplémentaire à la base de données.
  */
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class StatisticsDTO {
 
     // -------------------------------------------------------
@@ -24,42 +13,120 @@ public class StatisticsDTO {
     // -------------------------------------------------------
 
     private long totalProjets;
-
     private double tauxMoyenAvancement;
-
     private long projetsEnCours;
-
     private long projetsTermines;
-
     private long projetsSuspendus;
 
     // -------------------------------------------------------
     // Données pour les graphiques
-    // (Maps : clé = label, valeur = données numériques)
     // -------------------------------------------------------
 
-    /**
-     * Graphique 1 : Nombre de projets par domaine.
-     */
     private Map<String, Long> projetsByDomaine;
-
-    /**
-     * Graphique 2 : Répartition par statut.
-     */
     private Map<String, Long> projetsByStatut;
-
-    /**
-     * Graphique 3 : Évolution temporelle.
-     */
     private Map<Integer, Long> projetsByYear;
-
-    /**
-     * Graphique 4 : Charge des participants.
-     */
     private Map<String, Long> chargeByParticipant;
-
-    /**
-     * Budget total par domaine (pour graphique complémentaire).
-     */
     private Map<String, BigDecimal> budgetByDomaine;
+
+    // Constructeur vide
+    public StatisticsDTO() {
+    }
+
+    // Constructeur avec tous les paramètres
+    public StatisticsDTO(long totalProjets, double tauxMoyenAvancement, long projetsEnCours,
+                         long projetsTermines, long projetsSuspendus, Map<String, Long> projetsByDomaine,
+                         Map<String, Long> projetsByStatut, Map<Integer, Long> projetsByYear,
+                         Map<String, Long> chargeByParticipant, Map<String, BigDecimal> budgetByDomaine) {
+        this.totalProjets = totalProjets;
+        this.tauxMoyenAvancement = tauxMoyenAvancement;
+        this.projetsEnCours = projetsEnCours;
+        this.projetsTermines = projetsTermines;
+        this.projetsSuspendus = projetsSuspendus;
+        this.projetsByDomaine = projetsByDomaine;
+        this.projetsByStatut = projetsByStatut;
+        this.projetsByYear = projetsByYear;
+        this.chargeByParticipant = chargeByParticipant;
+        this.budgetByDomaine = budgetByDomaine;
+    }
+
+    // Getters et Setters
+    public long getTotalProjets() {
+        return totalProjets;
+    }
+
+    public void setTotalProjets(long totalProjets) {
+        this.totalProjets = totalProjets;
+    }
+
+    public double getTauxMoyenAvancement() {
+        return tauxMoyenAvancement;
+    }
+
+    public void setTauxMoyenAvancement(double tauxMoyenAvancement) {
+        this.tauxMoyenAvancement = tauxMoyenAvancement;
+    }
+
+    public long getProjetsEnCours() {
+        return projetsEnCours;
+    }
+
+    public void setProjetsEnCours(long projetsEnCours) {
+        this.projetsEnCours = projetsEnCours;
+    }
+
+    public long getProjetsTermines() {
+        return projetsTermines;
+    }
+
+    public void setProjetsTermines(long projetsTermines) {
+        this.projetsTermines = projetsTermines;
+    }
+
+    public long getProjetsSuspendus() {
+        return projetsSuspendus;
+    }
+
+    public void setProjetsSuspendus(long projetsSuspendus) {
+        this.projetsSuspendus = projetsSuspendus;
+    }
+
+    public Map<String, Long> getProjetsByDomaine() {
+        return projetsByDomaine;
+    }
+
+    public void setProjetsByDomaine(Map<String, Long> projetsByDomaine) {
+        this.projetsByDomaine = projetsByDomaine;
+    }
+
+    public Map<String, Long> getProjetsByStatut() {
+        return projetsByStatut;
+    }
+
+    public void setProjetsByStatut(Map<String, Long> projetsByStatut) {
+        this.projetsByStatut = projetsByStatut;
+    }
+
+    public Map<Integer, Long> getProjetsByYear() {
+        return projetsByYear;
+    }
+
+    public void setProjetsByYear(Map<Integer, Long> projetsByYear) {
+        this.projetsByYear = projetsByYear;
+    }
+
+    public Map<String, Long> getChargeByParticipant() {
+        return chargeByParticipant;
+    }
+
+    public void setChargeByParticipant(Map<String, Long> chargeByParticipant) {
+        this.chargeByParticipant = chargeByParticipant;
+    }
+
+    public Map<String, BigDecimal> getBudgetByDomaine() {
+        return budgetByDomaine;
+    }
+
+    public void setBudgetByDomaine(Map<String, BigDecimal> budgetByDomaine) {
+        this.budgetByDomaine = budgetByDomaine;
+    }
 }

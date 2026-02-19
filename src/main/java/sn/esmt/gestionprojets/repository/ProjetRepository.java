@@ -6,7 +6,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import sn.esmt.gestionprojets.entity.DomaineRecherche;
 import sn.esmt.gestionprojets.entity.Projet;
-import sn.esmt.gestionprojets.entity.StatutProjet;
+import sn.esmt.gestionprojets.entity.enums.StatutProjet;
 import sn.esmt.gestionprojets.entity.User;
 
 import java.util.List;

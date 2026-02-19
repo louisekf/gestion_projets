@@ -1,12 +1,12 @@
 package sn.esmt.gestionprojets.exceptions;
 
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -17,8 +17,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
-@Slf4j
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     /**
      * 404 - Ressource non trouvée.
@@ -30,13 +31,12 @@ public class GlobalExceptionHandler {
 
         log.warn("Ressource non trouvée : {} - {}", request.getRequestURI(), ex.getMessage());
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.NOT_FOUND.value())
-                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
-                .build();
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(LocalDateTime.now());
+        error.setStatus(HttpStatus.NOT_FOUND.value());
+        error.setError(HttpStatus.NOT_FOUND.getReasonPhrase());
+        error.setMessage(ex.getMessage());
+        error.setPath(request.getRequestURI());
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
@@ -51,13 +51,12 @@ public class GlobalExceptionHandler {
 
         log.warn("Erreur métier : {} - {}", request.getRequestURI(), ex.getMessage());
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
-                .build();
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(LocalDateTime.now());
+        error.setStatus(HttpStatus.BAD_REQUEST.value());
+        error.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        error.setMessage(ex.getMessage());
+        error.setPath(request.getRequestURI());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
@@ -72,20 +71,18 @@ public class GlobalExceptionHandler {
 
         log.warn("Accès refusé : {} - {}", request.getRequestURI(), ex.getMessage());
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.FORBIDDEN.value())
-                .error(HttpStatus.FORBIDDEN.getReasonPhrase())
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
-                .build();
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(LocalDateTime.now());
+        error.setStatus(HttpStatus.FORBIDDEN.value());
+        error.setError(HttpStatus.FORBIDDEN.getReasonPhrase());
+        error.setMessage(ex.getMessage());
+        error.setPath(request.getRequestURI());
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
 
     /**
      * 400 - Validation des champs (formulaires).
-     * Intercepte les erreurs @Valid sur les DTOs.
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationErrors(
@@ -100,14 +97,13 @@ public class GlobalExceptionHandler {
 
         log.warn("Erreurs de validation : {} - {}", request.getRequestURI(), details);
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error("Validation Failed")
-                .message("Des erreurs de validation ont été détectées")
-                .path(request.getRequestURI())
-                .details(details)
-                .build();
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(LocalDateTime.now());
+        error.setStatus(HttpStatus.BAD_REQUEST.value());
+        error.setError("Validation Failed");
+        error.setMessage("Des erreurs de validation ont été détectées");
+        error.setPath(request.getRequestURI());
+        error.setDetails(details);
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
@@ -122,13 +118,12 @@ public class GlobalExceptionHandler {
 
         log.warn("Accès refusé par Spring Security : {}", request.getRequestURI());
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.FORBIDDEN.value())
-                .error(HttpStatus.FORBIDDEN.getReasonPhrase())
-                .message("Vous n'avez pas les permissions nécessaires pour accéder à cette ressource.")
-                .path(request.getRequestURI())
-                .build();
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(LocalDateTime.now());
+        error.setStatus(HttpStatus.FORBIDDEN.value());
+        error.setError(HttpStatus.FORBIDDEN.getReasonPhrase());
+        error.setMessage("Vous n'avez pas les permissions nécessaires pour accéder à cette ressource.");
+        error.setPath(request.getRequestURI());
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
@@ -143,19 +138,18 @@ public class GlobalExceptionHandler {
 
         log.warn("Erreur d'authentification : {}", request.getRequestURI());
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.UNAUTHORIZED.value())
-                .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
-                .message("Authentification requise.")
-                .path(request.getRequestURI())
-                .build();
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(LocalDateTime.now());
+        error.setStatus(HttpStatus.UNAUTHORIZED.value());
+        error.setError(HttpStatus.UNAUTHORIZED.getReasonPhrase());
+        error.setMessage("Authentification requise.");
+        error.setPath(request.getRequestURI());
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
     /**
-     * 500 - Erreur système (catch-all pour les exceptions non gérées).
+     * 500 - Erreur système (catch-all).
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(
@@ -164,13 +158,12 @@ public class GlobalExceptionHandler {
 
         log.error("Erreur système : {} - {}", request.getRequestURI(), ex.getMessage(), ex);
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
-                .message("Une erreur interne s'est produite. Veuillez réessayer plus tard.")
-                .path(request.getRequestURI())
-                .build();
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(LocalDateTime.now());
+        error.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        error.setError(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
+        error.setMessage("Une erreur interne s'est produite. Veuillez réessayer plus tard.");
+        error.setPath(request.getRequestURI());
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }

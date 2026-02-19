@@ -1,6 +1,6 @@
 package sn.esmt.gestionprojets.service;
 
-import sn.esmt.gestionprojets.entity.Role;
+import sn.esmt.gestionprojets.entity.enums.Role;
 import sn.esmt.gestionprojets.entity.User;
 
 import java.util.List;

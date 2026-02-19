@@ -1,4 +1,4 @@
-package sn.esmt.gestionprojets.entity;
+package sn.esmt.gestionprojets.entity.enums;
 
 public enum StatutProjet {
     EN_COURS,

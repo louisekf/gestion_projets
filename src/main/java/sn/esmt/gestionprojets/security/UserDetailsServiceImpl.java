@@ -1,7 +1,7 @@
 package sn.esmt.gestionprojets.security;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -14,11 +14,16 @@ import sn.esmt.gestionprojets.repository.UserRepository;
  * UserDetailsService AMÉLIORÉ avec exceptions personnalisées.
  */
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class UserDetailsServiceImpl implements UserDetailsService {
 
+    private static final Logger log = LoggerFactory.getLogger(UserDetailsServiceImpl.class);
+
     private final UserRepository userRepository;
+
+    // Constructeur explicite
+    public UserDetailsServiceImpl(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -35,4 +40,3 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return new UserPrincipal(user);
     }
 }
-

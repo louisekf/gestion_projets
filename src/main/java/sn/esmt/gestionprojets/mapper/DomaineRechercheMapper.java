@@ -14,13 +14,14 @@ public class DomaineRechercheMapper {
     public DomaineRechercheResponse toResponse(DomaineRecherche domaine) {
         if (domaine == null) return null;
 
-        return DomaineRechercheResponse.builder()
-                .id(domaine.getId())
-                .nom(domaine.getNom())
-                .code(domaine.getCode())
-                .description(domaine.getDescription())
-                .nombreProjets(domaine.getProjets() != null ? domaine.getProjets().size() : 0)
-                .build();
+        DomaineRechercheResponse response = new DomaineRechercheResponse();
+        response.setId(domaine.getId());
+        response.setNom(domaine.getNom());
+        response.setCode(domaine.getCode());
+        response.setDescription(domaine.getDescription());
+        response.setNombreProjets(domaine.getProjets() != null ? domaine.getProjets().size() : 0);
+
+        return response;
     }
 
     public List<DomaineRechercheResponse> toResponseList(List<DomaineRecherche> domaines) {
@@ -32,11 +33,12 @@ public class DomaineRechercheMapper {
     public DomaineRecherche toEntity(DomaineRechercheRequest request) {
         if (request == null) return null;
 
-        return DomaineRecherche.builder()
-                .nom(request.getNom())
-                .code(request.getCode())
-                .description(request.getDescription())
-                .build();
+        DomaineRecherche domaine = new DomaineRecherche();
+        domaine.setNom(request.getNom());
+        domaine.setCode(request.getCode());
+        domaine.setDescription(request.getDescription());
+
+        return domaine;
     }
 
     public void updateEntityFromRequest(DomaineRecherche domaine, DomaineRechercheRequest request) {

@@ -1,10 +1,11 @@
 package sn.esmt.gestionprojets.service.impl;
+
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import sn.esmt.gestionprojets.entity.Role;
+import sn.esmt.gestionprojets.entity.enums.Role;
 import sn.esmt.gestionprojets.entity.User;
 import sn.esmt.gestionprojets.exceptions.BusinessException;
 import sn.esmt.gestionprojets.exceptions.ResourceNotFoundException;
@@ -13,17 +14,20 @@ import sn.esmt.gestionprojets.service.UserService;
 
 import java.util.List;
 
-/**
- * Service utilisateur AMÉLIORÉ avec exceptions personnalisées.
- */
 @Service
 @Transactional
-@RequiredArgsConstructor
-@Slf4j
 public class UserServiceImpl implements UserService {
+
+    private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    // Constructeur explicite
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Override
     public List<User> findAll() {
@@ -44,7 +48,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User register(User user) {
-        // Vérifications métier avec exceptions personnalisées
+        // Vérifications métier
         if (userRepository.existsByEmail(user.getEmail())) {
             throw BusinessException.emailAlreadyExists(user.getEmail());
         }
@@ -119,5 +123,4 @@ public class UserServiceImpl implements UserService {
     public boolean usernameExists(String username) {
         return userRepository.existsByUsername(username);
     }
-
 }

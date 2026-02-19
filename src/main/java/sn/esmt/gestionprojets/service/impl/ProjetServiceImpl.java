@@ -1,14 +1,14 @@
 package sn.esmt.gestionprojets.service.impl;
 
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import sn.esmt.gestionprojets.dto.request.ProjetRequest;
 import sn.esmt.gestionprojets.entity.DomaineRecherche;
 import sn.esmt.gestionprojets.entity.Projet;
-import sn.esmt.gestionprojets.entity.Role;
+import sn.esmt.gestionprojets.entity.enums.Role;
 import sn.esmt.gestionprojets.entity.User;
 import sn.esmt.gestionprojets.exceptions.ResourceNotFoundException;
 import sn.esmt.gestionprojets.exceptions.UnauthorizedException;
@@ -22,13 +22,22 @@ import java.util.List;
 
 @Service
 @Transactional
-@RequiredArgsConstructor
-@Slf4j
 public class ProjetServiceImpl implements ProjetService {
+
+    private static final Logger log = LoggerFactory.getLogger(ProjetServiceImpl.class);
 
     private final ProjetRepository projectRepository;
     private final UserRepository userRepository;
     private final DomaineRechercheRepository domaineRepository;
+
+    // Constructeur explicite
+    public ProjetServiceImpl(ProjetRepository projectRepository,
+                             UserRepository userRepository,
+                             DomaineRechercheRepository domaineRepository) {
+        this.projectRepository = projectRepository;
+        this.userRepository = userRepository;
+        this.domaineRepository = domaineRepository;
+    }
 
     // -------------------------------------------------------
     // Récupération utilisateur connecté
@@ -81,18 +90,17 @@ public class ProjetServiceImpl implements ProjetService {
         DomaineRecherche domaine = domaineRepository.findById(dto.getDomaineId())
                 .orElseThrow(() -> ResourceNotFoundException.domaine(dto.getDomaineId()));
 
-        Projet project = Projet.builder()
-                .titre(dto.getTitre())
-                .description(dto.getDescription())
-                .dateDebut(dto.getDateDebut())
-                .dateFin(dto.getDateFin())
-                .statut(dto.getStatut())
-                .budgetEstime(dto.getBudgetEstime())
-                .institution(dto.getInstitution())
-                .niveauAvancement(dto.getNiveauAvancement() != null ? dto.getNiveauAvancement() : 0)
-                .domaine(domaine)
-                .responsable(currentUser)
-                .build();
+        Projet project = new Projet();
+        project.setTitre(dto.getTitre());
+        project.setDescription(dto.getDescription());
+        project.setDateDebut(dto.getDateDebut());
+        project.setDateFin(dto.getDateFin());
+        project.setStatut(dto.getStatut());
+        project.setBudgetEstime(dto.getBudgetEstime());
+        project.setInstitution(dto.getInstitution());
+        project.setNiveauAvancement(dto.getNiveauAvancement() != null ? dto.getNiveauAvancement() : 0);
+        project.setDomaine(domaine);
+        project.setResponsable(currentUser);
 
         if (dto.getParticipantIds() != null && currentUser.isManagerOrAdmin()) {
             List<User> participants = userRepository.findAllById(dto.getParticipantIds());

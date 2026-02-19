@@ -1,8 +1,8 @@
 package sn.esmt.gestionprojets.service.impl;
 
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import sn.esmt.gestionprojets.entity.DomaineRecherche;
 import sn.esmt.gestionprojets.exceptions.BusinessException;
@@ -14,11 +14,16 @@ import java.util.List;
 
 @Service
 @Transactional
-@RequiredArgsConstructor
-@Slf4j
 public class DomaineRechercheServiceImpl implements DomaineRechercheService {
 
+    private static final Logger log = LoggerFactory.getLogger(DomaineRechercheServiceImpl.class);
+
     private final DomaineRechercheRepository domaineRepository;
+
+    // Constructeur explicite (remplace @RequiredArgsConstructor)
+    public DomaineRechercheServiceImpl(DomaineRechercheRepository domaineRepository) {
+        this.domaineRepository = domaineRepository;
+    }
 
     @Override
     public List<DomaineRecherche> findAll() {

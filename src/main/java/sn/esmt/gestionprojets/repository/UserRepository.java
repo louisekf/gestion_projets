@@ -3,7 +3,7 @@ package sn.esmt.gestionprojets.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-import sn.esmt.gestionprojets.entity.Role;
+import sn.esmt.gestionprojets.entity.enums.Role;
 import sn.esmt.gestionprojets.entity.User;
 
 import java.util.List;

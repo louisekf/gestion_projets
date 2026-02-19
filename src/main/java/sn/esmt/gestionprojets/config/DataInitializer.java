@@ -1,33 +1,31 @@
 package sn.esmt.gestionprojets.config;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import sn.esmt.gestionprojets.entity.DomaineRecherche;
-import sn.esmt.gestionprojets.entity.Role;
+import sn.esmt.gestionprojets.entity.enums.Role;
 import sn.esmt.gestionprojets.entity.User;
 import sn.esmt.gestionprojets.repository.DomaineRechercheRepository;
 import sn.esmt.gestionprojets.service.UserService;
 
 /**
  * DataInitializer : s'exécute AUTOMATIQUEMENT au démarrage de l'application.
- *
- * Implémente CommandLineRunner → la méthode run() est appelée une fois
- * que Spring Boot a fini de démarrer (bean, sécurité, DB tout prêts).
- *
- * Crée :
- *  - Les domaines de recherche par défaut
- *  - Un compte ADMIN par défaut (à changer en production !)
- *  - Un compte MANAGER par défaut
- *  - Un compte USER de test
  */
 @Component
-@RequiredArgsConstructor
-@Slf4j
 public class DataInitializer implements CommandLineRunner {
+
+    private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
 
     private final DomaineRechercheRepository domaineRepository;
     private final UserService userService;
+
+    // Constructeur explicite
+    public DataInitializer(DomaineRechercheRepository domaineRepository, UserService userService) {
+        this.domaineRepository = domaineRepository;
+        this.userService = userService;
+    }
 
     @Override
     public void run(String... args) {
@@ -60,11 +58,11 @@ public class DataInitializer implements CommandLineRunner {
         };
 
         for (String[] d : domaines) {
-            DomaineRecherche domaine = DomaineRecherche.builder()
-                    .code(d[0])
-                    .nom(d[1])
-                    .description(d[2])
-                    .build();
+            DomaineRecherche domaine = new DomaineRecherche();
+            domaine.setCode(d[0]);
+            domaine.setNom(d[1]);
+            domaine.setDescription(d[2]);
+
             domaineRepository.save(domaine);
             log.info("  → Domaine créé : {}", d[1]);
         }
@@ -78,7 +76,7 @@ public class DataInitializer implements CommandLineRunner {
         createUserIfNotExists(
                 "admin",
                 "admin@esmt.sn",
-                "Admin2026!",           // À changer ABSOLUMENT en production
+                "Admin2026!",
                 "ADMIN",
                 "ESMT",
                 Role.ADMIN
@@ -110,16 +108,15 @@ public class DataInitializer implements CommandLineRunner {
             return;
         }
 
-        User user = User.builder()
-                .username(username)
-                .email(email)
-                .password(password)  // sera encodé par UserService.register()
-                .nom(nom)
-                .prenom(prenom)
-                .institution("ESMT")
-                .role(role)
-                .enabled(true)
-                .build();
+        User user = new User();
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setPassword(password);
+        user.setNom(nom);
+        user.setPrenom(prenom);
+        user.setInstitution("ESMT");
+        user.setRole(role);
+        user.setEnabled(true);
 
         userService.register(user);
         log.info("  → Utilisateur créé : {} ({})", email, role);
