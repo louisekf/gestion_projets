@@ -34,14 +34,7 @@ public class SecurityConfig {
                         // Pages publiques (accessibles sans authentification)
                         .requestMatchers("/", "/login", "/register", "/css/**", "/js/**", "/images/**").permitAll()
 
-                        .requestMatchers(
-                                "/swagger-ui.html",
-                                "/swagger-ui/**",
-                                "/v3/api-docs",
-                                "/v3/api-docs/**",
-                                "/swagger-resources/**",
-                                "/webjars/**"
-                        ).permitAll()
+
                         
                         // API REST - Endpoints par rôle
                         .requestMatchers("/api/auth/**").permitAll()
@@ -52,10 +45,14 @@ public class SecurityConfig {
 
                         // Pages Web - Accès par rôle
                         .requestMatchers("/dashboard").authenticated()
+                        .requestMatchers("/profil", "/profil/**").authenticated()
                         .requestMatchers("/projets/**").hasAnyRole("USER", "MANAGER", "ADMIN")
                         .requestMatchers("/statistics/**").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
 
+                        .requestMatchers(
+                                "/v3/api-docs/**"   // ← OBLIGATOIRE
+                        ).permitAll()
                         // Toutes les autres requêtes nécessitent une authentification
                         .anyRequest().authenticated()
                 )
@@ -95,6 +92,7 @@ public class SecurityConfig {
                 // Configuration CSRF (désactivé pour l'API REST, actif pour le web)
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers("/api/**")  // Désactiver CSRF pour l'API
+                        .ignoringRequestMatchers("/v3/api-docs/**")
                 );
 
         return http.build();

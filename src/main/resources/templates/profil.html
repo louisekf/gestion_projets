@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<body>
+
+<th:block th:replace="~{fragments/layout :: page(title='Mon profil', content=~{::content})}">
+  <content>
+
+    <div class="breadcrumb">
+      <a th:href="@{/dashboard}">Accueil</a>
+      <span class="separator">›</span>
+      <span class="current">Mon profil</span>
+    </div>
+
+    <!-- Flash messages -->
+    <th:block th:if="${success}">
+      <div class="alert alert-success fade-in">
+        <span class="alert-icon">✅</span>
+        <div th:text="${success}"></div>
+      </div>
+    </th:block>
+    <th:block th:if="${error}">
+      <div class="alert alert-danger fade-in">
+        <span class="alert-icon">❌</span>
+        <div th:text="${error}"></div>
+      </div>
+    </th:block>
+
+    <div style="display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start;max-width:900px">
+
+      <!-- ── Carte identité ───────────────────────────────────────────── -->
+      <div>
+        <div class="card">
+          <div class="card-body" style="text-align:center;padding:32px 24px">
+            <!-- Avatar grand -->
+            <div style="width:80px;height:80px;border-radius:50%;background:var(--primary);
+                      display:flex;align-items:center;justify-content:center;
+                      font-size:32px;font-weight:700;color:white;margin:0 auto 16px"
+                 th:text="${user.nomComplet != null and !user.nomComplet.isEmpty()}
+                          ? ${user.nomComplet.substring(0,1).toUpperCase()} : 'U'">U</div>
+
+            <div style="font-weight:700;font-size:18px;font-family:var(--font-display)"
+                 th:text="${user.nomComplet != null ? user.nomComplet : user.username}">Nom</div>
+            <div class="text-sm text-muted mt-1" th:text="${user.email}">email@exemple.com</div>
+
+            <!-- Badge rôle -->
+            <div style="margin-top:12px">
+            <span th:class="${user.role != null and user.role.name() == 'ADMIN'} ? 'badge badge-danger' :
+                             (${user.role != null and user.role.name() == 'MANAGER'} ? 'badge badge-warning' : 'badge badge-primary')"
+                  th:text="${user.role != null ? user.role.name() : 'USER'}">ROLE</span>
+            </div>
+
+            <!-- Statut -->
+            <div style="margin-top:8px">
+            <span th:class="${user.enabled} ? 'badge badge-success' : 'badge badge-danger'"
+                  th:text="${user.enabled} ? 'Compte actif' : 'Compte désactivé'">Actif</span>
+            </div>
+          </div>
+
+          <div class="card-body" style="padding:0;border-top:1px solid var(--border-light)">
+            <div style="padding:12px 20px;border-bottom:1px solid var(--border-light);display:flex;justify-content:space-between">
+              <span class="text-sm text-muted">Institution</span>
+              <span class="text-sm" th:text="${user.institution != null ? user.institution : '-'}">-</span>
+            </div>
+            <div style="padding:12px 20px;border-bottom:1px solid var(--border-light);display:flex;justify-content:space-between">
+              <span class="text-sm text-muted">Téléphone</span>
+              <span class="text-sm" th:text="${user.telephone != null ? user.telephone : '-'}">-</span>
+            </div>
+            <div style="padding:12px 20px;display:flex;justify-content:space-between">
+              <span class="text-sm text-muted">Membre depuis</span>
+              <span class="text-sm font-mono"
+                    th:text="${user.createdAt != null ? #temporals.format(user.createdAt, 'MM/yyyy') : '-'}">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Connexion Google -->
+        <div class="card mt-4">
+          <div class="card-body" style="padding:16px 20px">
+            <div class="text-sm" style="font-weight:500;margin-bottom:8px">Connexion Google</div>
+            <th:block th:if="${user.googleId != null}">
+              <span class="badge badge-success">✅ Compte Google lié</span>
+            </th:block>
+            <th:block th:if="${user.googleId == null}">
+              <span class="badge badge-gray">Non lié</span>
+              <div class="text-sm text-muted mt-2">Connectez-vous avec Google pour lier votre compte.</div>
+            </th:block>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Formulaires ───────────────────────────────────────────────── -->
+      <div>
+
+        <!-- Modifier les informations -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <span class="card-title">✏️ Modifier mes informations</span>
+          </div>
+          <div class="card-body">
+            <form th:action="@{/profil}" method="post">
+              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+              <input type="hidden" name="_action" value="updateInfo"/>
+
+              <div class="form-row">
+                <div class="form-group mb-0">
+                  <label class="form-label" for="prenom">Prénom</label>
+                  <input type="text" id="prenom" name="prenom" class="form-control"
+                         th:value="${user.prenom != null ? user.prenom : ''}"
+                         placeholder="Votre prénom"/>
+                </div>
+                <div class="form-group mb-0">
+                  <label class="form-label" for="nom">Nom</label>
+                  <input type="text" id="nom" name="nom" class="form-control"
+                         th:value="${user.nom != null ? user.nom : ''}"
+                         placeholder="Votre nom"/>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="email">Email</label>
+                <input type="email" id="email" name="email" class="form-control"
+                       th:value="${user.email}"
+                       placeholder="votre@email.com"/>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group mb-0">
+                  <label class="form-label" for="telephone">Téléphone</label>
+                  <input type="text" id="telephone" name="telephone" class="form-control"
+                         th:value="${user.telephone != null ? user.telephone : ''}"
+                         placeholder="+221 77 000 00 00"/>
+                </div>
+                <div class="form-group mb-0">
+                  <label class="form-label" for="institution">Institution</label>
+                  <input type="text" id="institution" name="institution" class="form-control"
+                         th:value="${user.institution != null ? user.institution : ''}"
+                         placeholder="Université, laboratoire..."/>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-accent">💾 Enregistrer</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Changer le mot de passe (affiché uniquement si pas connexion Google pure) -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">🔒 Changer mon mot de passe</span>
+          </div>
+          <div class="card-body">
+            <th:block th:if="${user.password == null}">
+              <div class="alert alert-info" style="margin-bottom:0">
+                <span class="alert-icon">ℹ️</span>
+                <div>Votre compte utilise exclusivement Google. Vous n'avez pas de mot de passe local.</div>
+              </div>
+            </th:block>
+            <th:block th:if="${user.password != null}">
+              <form th:action="@{/profil}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <input type="hidden" name="_action" value="changePassword"/>
+
+                <div class="form-group">
+                  <label class="form-label" for="currentPassword">Mot de passe actuel</label>
+                  <input type="password" id="currentPassword" name="currentPassword"
+                         class="form-control" required placeholder="••••••••"/>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group mb-0">
+                    <label class="form-label" for="newPassword">Nouveau mot de passe</label>
+                    <input type="password" id="newPassword" name="newPassword"
+                           class="form-control" required minlength="8"
+                           placeholder="Min. 8 caractères"/>
+                  </div>
+                  <div class="form-group mb-0">
+                    <label class="form-label" for="confirmPassword">Confirmer</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword"
+                           class="form-control" required minlength="8"
+                           placeholder="Répéter le mot de passe"/>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">🔑 Changer le mot de passe</button>
+              </form>
+            </th:block>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </content>
+</th:block>
+
+<script>
+  // Validation côté client : les mots de passe doivent correspondre
+  document.querySelector('form [name=confirmPassword]')?.addEventListener('input', function() {
+    const np = document.getElementById('newPassword').value;
+    this.setCustomValidity(this.value !== np ? 'Les mots de passe ne correspondent pas' : '');
+  });
+</script>
+
+</body>
+</html>

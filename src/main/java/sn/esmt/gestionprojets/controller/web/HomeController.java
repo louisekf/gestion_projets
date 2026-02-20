@@ -25,12 +25,12 @@ public class HomeController {
 
     /**
      * Page d'accueil publique.
-     */
+     *//*
     @GetMapping("/")
     public String home() {
         return "index";  // templates/index.html
     }
-
+*/
     /**
      * Page de login.
      */
