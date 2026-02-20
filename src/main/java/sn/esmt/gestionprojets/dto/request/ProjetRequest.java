@@ -40,6 +40,8 @@ public class ProjetRequest {
 
     private List<Long> participantIds;
 
+    private Long responsableId;  // Optionnel — si null, le responsable = utilisateur connecté
+
     // Constructeur vide
     public ProjetRequest() {
     }
@@ -123,5 +125,13 @@ public class ProjetRequest {
 
     public void setParticipantIds(List<Long> participantIds) {
         this.participantIds = participantIds;
+    }
+
+    public Long getResponsableId() {
+        return responsableId;
+    }
+
+    public void setResponsableId(Long responsableId) {
+        this.responsableId = responsableId;
     }
 }

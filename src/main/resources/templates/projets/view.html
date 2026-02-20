@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<body>
+
+<th:block th:replace="~{fragments/layout :: page(title='Détail projet', content=~{::content})}">
+  <content>
+
+    <div class="breadcrumb">
+      <a th:href="@{/dashboard}">Accueil</a>
+      <span class="separator">›</span>
+      <a th:href="@{/projets}">Projets</a>
+      <span class="separator">›</span>
+      <span class="current" th:text="${projet.titre}">Projet</span>
+    </div>
+
+    <!-- Header Card -->
+    <div class="card mb-4"
+         style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); border: none;">
+      <div class="card-body" style="padding: 28px 32px;">
+        <div class="flex-between" style="flex-wrap:wrap;gap:16px">
+          <div>
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--accent-light);margin-bottom:8px"
+                 th:text="${projet.domaine != null ? projet.domaine.nom : 'Sans domaine'}">Domaine</div>
+            <h1 style="font-family:var(--font-display);font-size:26px;font-weight:700;color:white;margin-bottom:10px;line-height:1.3"
+                th:text="${projet.titre}">Titre</h1>
+            <div class="flex-center gap-2">
+            <span class="badge"
+                  th:classappend="${projet.statut != null and projet.statut.name() == 'EN_COURS'} ? 'badge-info' :
+                                  (${projet.statut != null and projet.statut.name() == 'TERMINE'} ? 'badge-success' :
+                                  (${projet.statut != null and projet.statut.name() == 'SUSPENDU'} ? 'badge-warning' : 'badge-gray'))"
+                  th:text="${projet.statut != null ? projet.statut.name() : '-'}">Statut</span>
+              <span style="color:rgba(255,255,255,0.5);font-size:13px"
+                    th:if="${projet.institution != null}"
+                    th:text="'🏛️ ' + ${projet.institution}">Institution</span>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:48px;font-weight:700;color:white;font-family:var(--font-mono)"
+                 th:text="${(projet.niveauAvancement != null ? projet.niveauAvancement : 0)} + '%'">0%</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.5)">Avancement</div>
+            <div class="progress mt-2" style="width:160px;background:rgba(255,255,255,0.2)">
+              <div class="progress-bar"
+                   style="background:var(--accent-light)"
+                   th:style="'width:' + ${projet.niveauAvancement != null ? projet.niveauAvancement : 0} + '%'"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start">
+
+      <!-- Colonne gauche -->
+      <div>
+
+        <!-- Description -->
+        <div class="card mb-4" th:if="${projet.description != null and !projet.description.isEmpty()}">
+          <div class="card-header"><span class="card-title">📄 Description</span></div>
+          <div class="card-body">
+            <p style="line-height:1.8;color:var(--text-secondary)" th:text="${projet.description}">-</p>
+          </div>
+        </div>
+
+        <!-- Participants -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <span class="card-title">👥 Participants</span>
+            <sec:authorize access="hasAnyRole('MANAGER','ADMIN')">
+              <button class="btn btn-outline btn-sm"
+                      onclick="document.getElementById('addParticipantModal').style.display='flex'">
+                + Ajouter
+              </button>
+            </sec:authorize>
+          </div>
+          <div class="card-body">
+            <th:block th:if="${projet.participants == null or projet.participants.isEmpty()}">
+              <div class="text-center text-muted" style="padding:20px">
+                <div style="font-size:32px;margin-bottom:8px">👤</div>
+                Aucun participant ajouté
+              </div>
+            </th:block>
+            <div class="participants-list" th:if="${projet.participants != null and !projet.participants.isEmpty()}">
+              <div class="participant-chip" th:each="p : ${projet.participants}">
+                <div class="participant-avatar"
+                     th:text="${p.nomComplet != null and !p.nomComplet.isEmpty()} ? ${p.nomComplet.substring(0,1).toUpperCase()} : '?'">P</div>
+                <div>
+                  <div style="font-weight:500;font-size:13px" th:text="${p.nomComplet != null ? p.nomComplet : p.email}">Nom</div>
+                </div>
+                <sec:authorize access="hasAnyRole('MANAGER','ADMIN')">
+                  <form th:action="@{/projets/{id}/participants/{uid}/retirer(id=${projet.id},uid=${p.id})}"
+                        method="post" style="margin-left:auto">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button type="submit"
+                            style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:14px"
+                            title="Retirer">✕</button>
+                  </form>
+                </sec:authorize>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Colonne droite : Métadonnées -->
+      <div>
+        <div class="card mb-4">
+          <div class="card-header"><span class="card-title">ℹ️ Informations</span></div>
+          <div class="card-body" style="padding:0">
+
+            <div style="padding:14px 20px;border-bottom:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center">
+              <span class="text-sm text-muted">Responsable</span>
+              <span class="text-sm" style="font-weight:500"
+                    th:text="${projet.responsable != null ? projet.responsable.nomComplet : 'Non défini'}">-</span>
+            </div>
+
+            <div style="padding:14px 20px;border-bottom:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center">
+              <span class="text-sm text-muted">Date début</span>
+              <span class="text-sm font-mono"
+                    th:text="${projet.dateDebut != null ? #temporals.format(projet.dateDebut, 'dd/MM/yyyy') : '-'}">-</span>
+            </div>
+
+            <div style="padding:14px 20px;border-bottom:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center">
+              <span class="text-sm text-muted">Date fin prévue</span>
+              <span class="text-sm font-mono"
+                    th:text="${projet.dateFin != null ? #temporals.format(projet.dateFin, 'dd/MM/yyyy') : '-'}">-</span>
+            </div>
+
+            <div style="padding:14px 20px;border-bottom:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center">
+              <span class="text-sm text-muted">Budget estimé</span>
+              <span class="text-sm font-mono"
+                    th:text="${projet.budgetEstime != null ? #numbers.formatDecimal(projet.budgetEstime,1,'POINT',0,'COMMA') + ' F' : 'Non défini'}">-</span>
+            </div>
+
+            <div style="padding:14px 20px;border-bottom:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center">
+              <span class="text-sm text-muted">Domaine</span>
+              <span class="badge badge-accent"
+                    th:text="${projet.domaine != null ? projet.domaine.nom : '-'}">-</span>
+            </div>
+
+            <div style="padding:14px 20px;display:flex;justify-content:space-between;align-items:center">
+              <span class="text-sm text-muted">Participants</span>
+              <span class="badge badge-primary"
+                    th:text="${projet.participants != null ? projet.participants.size() : 0}">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dates système -->
+        <div class="card">
+          <div class="card-header"><span class="card-title" style="font-size:14px">🕒 Historique</span></div>
+          <div class="card-body" style="padding:0">
+            <div style="padding:14px 20px;border-bottom:1px solid var(--border-light)">
+              <div class="text-sm text-muted">Créé le</div>
+              <div class="text-sm font-mono mt-1"
+                   th:text="${projet.createdAt != null ? #temporals.format(projet.createdAt, 'dd/MM/yyyy HH:mm') : '-'}">-</div>
+            </div>
+            <div style="padding:14px 20px">
+              <div class="text-sm text-muted">Modifié le</div>
+              <div class="text-sm font-mono mt-1"
+                   th:text="${projet.updatedAt != null ? #temporals.format(projet.updatedAt, 'dd/MM/yyyy HH:mm') : '-'}">-</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex gap-3 mt-4">
+      <a th:href="@{/projets/{id}/modifier(id=${projet.id})}" class="btn btn-primary">✏️ Modifier</a>
+      <a th:href="@{/projets}" class="btn btn-outline">← Retour</a>
+      <sec:authorize access="hasRole('ADMIN')">
+        <form th:action="@{/projets/{id}/supprimer(id=${projet.id})}" method="post" style="margin-left:auto">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+          <button type="submit" class="btn btn-danger"
+                  onclick="return confirm('Supprimer définitivement ce projet ?')">🗑️ Supprimer</button>
+        </form>
+      </sec:authorize>
+    </div>
+
+    <!-- ============================================================
+         MODALE : Ajouter un participant
+         Visible uniquement pour MANAGER et ADMIN
+         ============================================================ -->
+    <sec:authorize access="hasAnyRole('MANAGER','ADMIN')">
+      <div id="addParticipantModal"
+           style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
+        <div class="card" style="width:100%;max-width:460px;margin:20px;animation:fadeIn .2s ease">
+          <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+            <span class="card-title">👤 Ajouter un participant</span>
+            <button onclick="document.getElementById('addParticipantModal').style.display='none'"
+                    style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-muted)">✕</button>
+          </div>
+          <div class="card-body">
+            <form th:action="@{/projets/{id}/participants(id=${projet.id})}" method="post">
+              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+              <div class="form-group">
+                <label class="form-label" for="participantSelect">Sélectionner un utilisateur</label>
+                <select id="participantSelect" name="userId" class="form-control form-select" required>
+                  <option value="">-- Choisir --</option>
+                  <option th:each="u : ${tousLesUsers}"
+                          th:value="${u.id}"
+                          th:text="${u.nomComplet != null ? u.nomComplet + ' (' + u.email + ')' : u.email}">User</option>
+                </select>
+              </div>
+              <div class="flex gap-3 mt-4">
+                <button type="submit" class="btn btn-accent">✅ Ajouter</button>
+                <button type="button" class="btn btn-outline"
+                        onclick="document.getElementById('addParticipantModal').style.display='none'">Annuler</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </sec:authorize>
+
+    <!-- Fermer modale en cliquant sur l'overlay -->
+    <script>
+      document.getElementById('addParticipantModal')?.addEventListener('click', function(e) {
+        if (e.target === this) this.style.display = 'none';
+      });
+    </script>
+
+  </content>
+</th:block>
+
+</body>
+</html>

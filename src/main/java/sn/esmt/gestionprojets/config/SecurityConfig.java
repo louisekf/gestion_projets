@@ -34,6 +34,15 @@ public class SecurityConfig {
                         // Pages publiques (accessibles sans authentification)
                         .requestMatchers("/", "/login", "/register", "/css/**", "/js/**", "/images/**").permitAll()
 
+                        .requestMatchers(
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/webjars/**"
+                        ).permitAll()
+                        
                         // API REST - Endpoints par rôle
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/users/**").hasAnyRole("MANAGER", "ADMIN")
@@ -95,6 +104,7 @@ public class SecurityConfig {
      * Encodeur de mot de passe BCrypt.
      * Utilisé pour hasher les mots de passe avant de les stocker.
      */
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

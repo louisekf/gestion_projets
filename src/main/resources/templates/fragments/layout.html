@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+
+<!-- ================================================================
+     FRAGMENT: layout (sidebar + header wrapper)
+     Usage: th:replace="~{fragments/layout :: page(title='...',content=~{::content})}"
+     ================================================================ -->
+
+<th:block th:fragment="page(title, content)">
+  <!DOCTYPE html>
+  <html lang="fr">
+  <head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${title} + ' — CartoRecherche'">CartoRecherche</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}"/>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>📊</text></svg>"/>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  </head>
+  <body>
+  <div class="app-wrapper">
+
+    <!-- ===================== SIDEBAR ===================== -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">📊</div>
+        <div>
+          <div class="brand-text">CartoRecherche</div>
+          <div class="brand-sub">Plateforme nationale</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+
+        <!-- Principal -->
+        <div class="nav-section-label">Principal</div>
+
+        <!-- currentUri injecté par GlobalControllerAdvice -->
+        <th:block th:with="uri=${currentUri}">
+
+          <a th:href="@{/dashboard}"
+             th:classappend="${uri == '/dashboard'} ? 'active'"
+             class="nav-link">
+            <span class="nav-icon">🏠</span> Tableau de bord
+          </a>
+
+          <a th:href="@{/projets}"
+             th:classappend="${#strings.startsWith(uri, '/projets')} ? 'active'"
+             class="nav-link">
+            <span class="nav-icon">📁</span> Projets
+          </a>
+
+          <!-- Statistiques (MANAGER + ADMIN) -->
+          <th:block sec:authorize="hasAnyRole('MANAGER','ADMIN')">
+            <a th:href="@{/statistics}"
+               th:classappend="${#strings.startsWith(uri, '/statistics')} ? 'active'"
+               class="nav-link">
+              <span class="nav-icon">📈</span> Statistiques
+            </a>
+          </th:block>
+
+          <!-- Administration (ADMIN) -->
+          <th:block sec:authorize="hasRole('ADMIN')">
+            <div class="nav-section-label">Administration</div>
+            <a th:href="@{/admin}"
+               th:classappend="${uri == '/admin'} ? 'active'"
+               class="nav-link">
+              <span class="nav-icon">⚙️</span> Tableau admin
+            </a>
+            <a th:href="@{/admin/users}"
+               th:classappend="${#strings.startsWith(uri, '/admin/users')} ? 'active'"
+               class="nav-link">
+              <span class="nav-icon">👥</span> Utilisateurs
+            </a>
+            <a th:href="@{/admin/domaines}"
+               th:classappend="${#strings.startsWith(uri, '/admin/domaines')} ? 'active'"
+               class="nav-link">
+              <span class="nav-icon">🏷️</span> Domaines
+            </a>
+            <a th:href="@{/admin/import}"
+               th:classappend="${#strings.startsWith(uri, '/admin/import')} ? 'active'"
+               class="nav-link">
+              <span class="nav-icon">📤</span> Import CSV
+            </a>
+          </th:block>
+
+        </th:block><!-- fin th:with uri -->
+
+      </nav>
+
+      <!-- User footer -->
+      <div class="sidebar-footer">
+        <div class="user-mini">
+          <div class="user-avatar-sm"
+               th:text="${#authentication.principal.user.nomComplet != null and !#authentication.principal.user.nomComplet.isEmpty()} ? ${#authentication.principal.user.nomComplet.substring(0,1).toUpperCase()} : 'U'">U</div>
+          <div>
+            <div class="user-mini-name"
+                 th:text="${#authentication.principal.user.nomComplet ?: #authentication.principal.username}">Utilisateur</div>
+            <div class="user-mini-role"
+                 th:text="${#authentication.principal.user.role}">Role</div>
+          </div>
+          <form th:action="@{/logout}" method="post" style="margin-left:auto">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit" class="logout-btn" title="Se déconnecter">⏻</button>
+          </form>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===================== MAIN ===================== -->
+    <div class="main-content">
+
+      <!-- Topbar -->
+      <header class="topbar">
+        <button class="btn btn-outline btn-icon" id="menuToggle" style="display:none">☰</button>
+        <h1 class="topbar-title" th:text="${title}">Page</h1>
+        <div class="topbar-actions">
+          <!-- Flash messages as topbar indicator -->
+          <th:block th:if="${success}">
+            <span class="badge badge-success" th:text="${success}"></span>
+          </th:block>
+          <th:block th:if="${error}">
+            <span class="badge badge-danger" th:text="${error}"></span>
+          </th:block>
+        </div>
+      </header>
+
+      <!-- Page content -->
+      <main class="page-content">
+
+        <!-- Global flash alerts -->
+        <th:block th:if="${success}">
+          <div class="alert alert-success fade-in" data-auto-dismiss>
+            <span class="alert-icon">✅</span>
+            <span th:text="${success}"></span>
+          </div>
+        </th:block>
+        <th:block th:if="${error}">
+          <div class="alert alert-danger fade-in" data-auto-dismiss>
+            <span class="alert-icon">❌</span>
+            <span th:text="${error}"></span>
+          </div>
+        </th:block>
+
+        <!-- Injected content -->
+        <th:block th:replace="${content}"/>
+
+      </main>
+    </div>
+
+  </div>
+
+  <script th:src="@{/js/main.js}"></script>
+  </body>
+  </html>
+</th:block>
+
+</html>

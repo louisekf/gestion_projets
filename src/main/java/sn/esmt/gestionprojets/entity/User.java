@@ -58,6 +58,13 @@ public class User {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "google_id", unique = true)
+    private String googleId;
+
+    // + getter et setter :
+    public String getGoogleId() { return googleId; }
+    public void setGoogleId(String googleId) { this.googleId = googleId; }
+
     @OneToMany(mappedBy = "responsable", fetch = FetchType.LAZY)
     private List<Projet> projetsResponsable = new ArrayList<>();
 
@@ -192,9 +199,6 @@ public class User {
 
     // ==================== MÉTHODES UTILITAIRES ====================
 
-    public String getNomComplet() {
-        return this.prenom + " " + this.nom;
-    }
 
     public boolean isManagerOrAdmin() {
         return this.role == Role.MANAGER || this.role == Role.ADMIN;
@@ -204,6 +208,12 @@ public class User {
         return this.role == Role.ADMIN;
     }
 
+    public String getNomComplet() {
+        if (prenom != null && nom != null) return prenom + " " + nom;
+        if (nom != null) return nom;
+        if (prenom != null) return prenom;
+        return username;
+    }
     // ==================== EQUALS / HASHCODE / TOSTRING ====================
 
     @Override

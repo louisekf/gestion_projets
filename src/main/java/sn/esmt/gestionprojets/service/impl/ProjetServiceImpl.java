@@ -30,7 +30,6 @@ public class ProjetServiceImpl implements ProjetService {
     private final UserRepository userRepository;
     private final DomaineRechercheRepository domaineRepository;
 
-    // Constructeur explicite
     public ProjetServiceImpl(ProjetRepository projectRepository,
                              UserRepository userRepository,
                              DomaineRechercheRepository domaineRepository) {
@@ -58,12 +57,10 @@ public class ProjetServiceImpl implements ProjetService {
     @Override
     public List<Projet> findVisibleProjects() {
         User currentUser = getCurrentUser();
-
         if (currentUser.getRole() == Role.USER) {
             log.debug("Chargement des projets pour USER : {}", currentUser.getEmail());
             return projectRepository.findAllProjectsOfUser(currentUser);
         }
-
         log.debug("Chargement de tous les projets pour {} : {}", currentUser.getRole(), currentUser.getEmail());
         return projectRepository.findAll();
     }
@@ -71,10 +68,8 @@ public class ProjetServiceImpl implements ProjetService {
     @Override
     public Projet findById(Long id) {
         User currentUser = getCurrentUser();
-
         Projet project = projectRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.project(id));
-
         checkReadPermission(project, currentUser);
         return project;
     }
@@ -86,6 +81,14 @@ public class ProjetServiceImpl implements ProjetService {
     @Override
     public Projet create(ProjetRequest dto) {
         User currentUser = getCurrentUser();
+
+        User responsable;
+        if (dto.getResponsableId() != null && currentUser.isManagerOrAdmin()) {
+            responsable = userRepository.findById(dto.getResponsableId())
+                    .orElseThrow(() -> ResourceNotFoundException.user(dto.getResponsableId()));
+        } else {
+            responsable = currentUser;
+        }
 
         DomaineRecherche domaine = domaineRepository.findById(dto.getDomaineId())
                 .orElseThrow(() -> ResourceNotFoundException.domaine(dto.getDomaineId()));
@@ -100,7 +103,7 @@ public class ProjetServiceImpl implements ProjetService {
         project.setInstitution(dto.getInstitution());
         project.setNiveauAvancement(dto.getNiveauAvancement() != null ? dto.getNiveauAvancement() : 0);
         project.setDomaine(domaine);
-        project.setResponsable(currentUser);
+        project.setResponsable(responsable);
 
         if (dto.getParticipantIds() != null && currentUser.isManagerOrAdmin()) {
             List<User> participants = userRepository.findAllById(dto.getParticipantIds());
@@ -122,7 +125,6 @@ public class ProjetServiceImpl implements ProjetService {
 
         Projet project = projectRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.project(id));
-
         checkWritePermission(project, currentUser);
 
         project.setTitre(dto.getTitre());
@@ -138,6 +140,13 @@ public class ProjetServiceImpl implements ProjetService {
             DomaineRecherche domaine = domaineRepository.findById(dto.getDomaineId())
                     .orElseThrow(() -> ResourceNotFoundException.domaine(dto.getDomaineId()));
             project.setDomaine(domaine);
+        }
+
+        // Changer le responsable si MANAGER/ADMIN et responsableId fourni
+        if (currentUser.isManagerOrAdmin() && dto.getResponsableId() != null) {
+            User nouveauResponsable = userRepository.findById(dto.getResponsableId())
+                    .orElseThrow(() -> ResourceNotFoundException.user(dto.getResponsableId()));
+            project.setResponsable(nouveauResponsable);
         }
 
         if (currentUser.isManagerOrAdmin() && dto.getParticipantIds() != null) {
@@ -157,14 +166,11 @@ public class ProjetServiceImpl implements ProjetService {
     @Override
     public void delete(Long id) {
         User currentUser = getCurrentUser();
-
         if (currentUser.getRole() != Role.ADMIN) {
             throw UnauthorizedException.adminOnly();
         }
-
         Projet project = projectRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.project(id));
-
         projectRepository.delete(project);
         log.info("Projet '{}' supprimé par l'admin {}", project.getTitre(), currentUser.getEmail());
     }
@@ -176,16 +182,13 @@ public class ProjetServiceImpl implements ProjetService {
     @Override
     public Projet addParticipant(Long projectId, Long userId) {
         User currentUser = getCurrentUser();
-
         if (!currentUser.isManagerOrAdmin()) {
             throw UnauthorizedException.managerOrAdminOnly();
         }
-
         Projet project = projectRepository.findById(projectId)
                 .orElseThrow(() -> ResourceNotFoundException.project(projectId));
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> ResourceNotFoundException.user(userId));
-
         project.addParticipant(user);
         log.info("Participant {} ajouté au projet '{}'", user.getEmail(), project.getTitre());
         return projectRepository.save(project);
@@ -194,16 +197,13 @@ public class ProjetServiceImpl implements ProjetService {
     @Override
     public Projet removeParticipant(Long projectId, Long userId) {
         User currentUser = getCurrentUser();
-
         if (!currentUser.isManagerOrAdmin()) {
             throw UnauthorizedException.managerOrAdminOnly();
         }
-
         Projet project = projectRepository.findById(projectId)
                 .orElseThrow(() -> ResourceNotFoundException.project(projectId));
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> ResourceNotFoundException.user(userId));
-
         project.removeParticipant(user);
         log.info("Participant {} retiré du projet '{}'", user.getEmail(), project.getTitre());
         return projectRepository.save(project);

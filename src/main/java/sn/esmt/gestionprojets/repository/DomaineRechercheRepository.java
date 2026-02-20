@@ -16,4 +16,6 @@ public interface DomaineRechercheRepository extends JpaRepository<DomaineRecherc
     boolean existsByCode(String code);
 
     boolean existsByNom(String nom);
+
+    Optional<Object> findByCodeIgnoreCase(String domaineCode);
 }

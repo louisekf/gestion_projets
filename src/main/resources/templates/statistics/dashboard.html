@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:replace="~{fragments/layout :: page(title='Statistiques', content=~{::content})}">
+    <content>
+
+        <div class="breadcrumb">
+            <a th:href="@{/dashboard}">Accueil</a>
+            <span class="separator">›</span>
+            <span class="current">Statistiques</span>
+        </div>
+
+        <div class="flex-between mb-4">
+            <div>
+                <h2 style="font-family:var(--font-display);font-size:22px;font-weight:700">Tableau de bord statistiques</h2>
+                <p class="text-muted text-sm mt-1">Vue d'ensemble des projets de recherche</p>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="stat-grid">
+            <div class="stat-card accent">
+                <div class="stat-icon accent">📁</div>
+                <div>
+                    <div class="stat-value" th:text="${totalProjets}">0</div>
+                    <div class="stat-label">Total projets</div>
+                </div>
+            </div>
+            <div class="stat-card info">
+                <div class="stat-icon info">🔄</div>
+                <div>
+                    <div class="stat-value" th:text="${projetsEnCours}">0</div>
+                    <div class="stat-label">En cours</div>
+                </div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-icon success">✅</div>
+                <div>
+                    <div class="stat-value" th:text="${projetsTermines}">0</div>
+                    <div class="stat-label">Terminés</div>
+                </div>
+            </div>
+            <div class="stat-card warning">
+                <div class="stat-icon warning">⏸️</div>
+                <div>
+                    <div class="stat-value" th:text="${projetsSuspendus}">0</div>
+                    <div class="stat-label">Suspendus</div>
+                </div>
+            </div>
+            <div class="stat-card danger">
+                <div class="stat-icon danger">📊</div>
+                <div>
+                    <div class="stat-value"
+                         th:text="${tauxMoyenAvancement != null ? #numbers.formatDecimal(tauxMoyenAvancement, 1, 'POINT', 1, 'COMMA') + '%' : '0%'}">0%</div>
+                    <div class="stat-label">Avancement moyen</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 1: Domaine + Statut -->
+        <div class="charts-grid mb-4">
+
+            <div class="chart-card">
+                <div class="chart-title">Projets par domaine</div>
+                <div class="chart-subtitle">Répartition selon les domaines de recherche</div>
+                <div class="chart-wrap">
+                    <canvas id="chartDomaine"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title">Répartition par statut</div>
+                <div class="chart-subtitle">État actuel des projets</div>
+                <div class="chart-wrap">
+                    <canvas id="chartStatut"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Row 2: Temporal + Participants -->
+        <div class="charts-grid mb-4">
+
+            <div class="chart-card">
+                <div class="chart-title">Évolution temporelle</div>
+                <div class="chart-subtitle">Nombre de projets créés par année</div>
+                <div class="chart-wrap">
+                    <canvas id="chartYear"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title">Charge par participant</div>
+                <div class="chart-subtitle">Nombre de projets par participant</div>
+                <div class="chart-wrap">
+                    <canvas id="chartParticipants"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Row 3: Budget par domaine (full width) -->
+        <div class="chart-card mb-4">
+            <div class="chart-title">Budget estimé par domaine</div>
+            <div class="chart-subtitle">Budget total des projets par domaine de recherche (FCFA)</div>
+            <div class="chart-wrap" style="height:300px">
+                <canvas id="chartBudget"></canvas>
+            </div>
+        </div>
+
+        <!-- Data tables (accessible) -->
+        <div class="charts-grid">
+
+            <div class="card">
+                <div class="card-header"><span class="card-title">📊 Détail par domaine</span></div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead><tr><th>Domaine</th><th>Projets</th></tr></thead>
+                        <tbody>
+                        <tr th:each="entry : ${projetsByDomaine}">
+                            <td th:text="${entry.key}">Domaine</td>
+                            <td><span class="badge badge-accent" th:text="${entry.value}">0</span></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><span class="card-title">📊 Détail par statut</span></div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead><tr><th>Statut</th><th>Projets</th></tr></thead>
+                        <tbody>
+                        <tr th:each="entry : ${projetsByStatut}">
+                            <td>
+                <span th:classappend="${entry.key == 'EN_COURS'} ? 'badge-info' :
+                                      (${entry.key == 'TERMINE'} ? 'badge-success' :
+                                      (${entry.key == 'SUSPENDU'} ? 'badge-warning' : 'badge-gray'))"
+                      class="badge" th:text="${entry.key}">Statut</span>
+                            </td>
+                            <td><span class="badge badge-primary" th:text="${entry.value}">0</span></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Inject data for Chart.js -->
+        <script th:inline="javascript">
+            const statsByDomaine     = /*[[${projetsByDomaine}]]*/ {};
+            const statsByStatut      = /*[[${projetsByStatut}]]*/ {};
+            const statsByYear        = /*[[${projetsByYear}]]*/ {};
+            const chargeParticipant  = /*[[${chargeByParticipant}]]*/ {};
+            const budgetByDomaine    = /*[[${budgetByDomaine}]]*/ {};
+        </script>
+
+    </content>
+</th:block>
+
+<script>
+    // ================================================================
+    // CHARTS - Statistics Dashboard
+    // ================================================================
+
+    // Color palette
+    const COLORS = [
+        '#1a2e4a', '#c8832a', '#2d7d5a', '#2471a3', '#d4a017',
+        '#8e44ad', '#e74c3c', '#1abc9c', '#3498db', '#e67e22'
+    ];
+
+    const chartDefaults = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: {
+                    font: { family: "'DM Sans', sans-serif", size: 12 },
+                    color: '#5a6070',
+                    padding: 16,
+                    boxWidth: 14,
+                    boxHeight: 14
+                }
+            },
+            tooltip: {
+                backgroundColor: '#1a2e4a',
+                titleFont: { family: "'DM Sans', sans-serif", size: 13 },
+                bodyFont: { family: "'DM Sans', sans-serif", size: 12 },
+                padding: 10,
+                cornerRadius: 8
+            }
+        }
+    };
+
+    function toEntries(obj) {
+        if (!obj) return { keys: [], vals: [] };
+        const entries = Object.entries(obj);
+        return { keys: entries.map(e => e[0]), vals: entries.map(e => Number(e[1])) };
+    }
+
+    // ---- 1. Projets par domaine (Doughnut) ----
+    {
+        const { keys, vals } = toEntries(statsByDomaine);
+        new Chart(document.getElementById('chartDomaine'), {
+            type: 'doughnut',
+            data: {
+                labels: keys,
+                datasets: [{
+                    data: vals,
+                    backgroundColor: COLORS.slice(0, keys.length),
+                    borderWidth: 2,
+                    borderColor: '#fff',
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                ...chartDefaults,
+                cutout: '65%',
+                plugins: {
+                    ...chartDefaults.plugins,
+                    legend: { ...chartDefaults.plugins.legend, position: 'right' }
+                }
+            }
+        });
+    }
+
+    // ---- 2. Projets par statut (Pie) ----
+    {
+        const statusColors = {
+            'EN_COURS': '#2471a3',
+            'TERMINE':  '#2d7d5a',
+            'SUSPENDU': '#d4a017',
+            'PLANIFIE': '#5a6070',
+            'ANNULE':   '#b03a2e'
+        };
+        const { keys, vals } = toEntries(statsByStatut);
+        new Chart(document.getElementById('chartStatut'), {
+            type: 'pie',
+            data: {
+                labels: keys,
+                datasets: [{
+                    data: vals,
+                    backgroundColor: keys.map(k => statusColors[k] || '#ccc'),
+                    borderWidth: 2,
+                    borderColor: '#fff',
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                ...chartDefaults,
+                plugins: {
+                    ...chartDefaults.plugins,
+                    legend: { ...chartDefaults.plugins.legend, position: 'right' }
+                }
+            }
+        });
+    }
+
+    // ---- 3. Évolution temporelle (Bar) ----
+    {
+        const { keys, vals } = toEntries(statsByYear);
+        new Chart(document.getElementById('chartYear'), {
+            type: 'bar',
+            data: {
+                labels: keys,
+                datasets: [{
+                    label: 'Projets',
+                    data: vals,
+                    backgroundColor: 'rgba(26,46,74,0.75)',
+                    borderColor: '#1a2e4a',
+                    borderWidth: 1,
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                ...chartDefaults,
+                plugins: { ...chartDefaults.plugins, legend: { display: false } },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { family: "'DM Sans', sans-serif", size: 11 }, color: '#5a6070' }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,0.04)' },
+                        ticks: { precision: 0, font: { family: "'DM Sans', sans-serif", size: 11 }, color: '#5a6070' }
+                    }
+                }
+            }
+        });
+    }
+
+    // ---- 4. Charge participants (Horizontal bar) ----
+    {
+        const { keys, vals } = toEntries(chargeParticipant);
+        new Chart(document.getElementById('chartParticipants'), {
+            type: 'bar',
+            data: {
+                labels: keys,
+                datasets: [{
+                    label: 'Projets',
+                    data: vals,
+                    backgroundColor: COLORS.slice(0, keys.length).map(c => c + 'cc'),
+                    borderColor: COLORS.slice(0, keys.length),
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                ...chartDefaults,
+                indexAxis: 'y',
+                plugins: { ...chartDefaults.plugins, legend: { display: false } },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,0.04)' },
+                        ticks: { precision: 0, font: { family: "'DM Sans', sans-serif", size: 11 }, color: '#5a6070' }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { font: { family: "'DM Sans', sans-serif", size: 11 }, color: '#5a6070' }
+                    }
+                }
+            }
+        });
+    }
+
+    // ---- 5. Budget par domaine (Bar) ----
+    {
+        const { keys, vals } = toEntries(budgetByDomaine);
+        new Chart(document.getElementById('chartBudget'), {
+            type: 'bar',
+            data: {
+                labels: keys,
+                datasets: [{
+                    label: 'Budget (FCFA)',
+                    data: vals,
+                    backgroundColor: COLORS.map(c => c + 'bb'),
+                    borderColor: COLORS,
+                    borderWidth: 1,
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                ...chartDefaults,
+                plugins: { ...chartDefaults.plugins, legend: { display: false } },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { family: "'DM Sans', sans-serif", size: 11 }, color: '#5a6070' }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,0.04)' },
+                        ticks: {
+                            font: { family: "'DM Sans', sans-serif", size: 11 },
+                            color: '#5a6070',
+                            callback: v => v >= 1_000_000 ? (v / 1_000_000).toFixed(1) + 'M' :
+                                v >= 1_000 ? (v / 1_000).toFixed(0) + 'k' : v
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+
+</body>
+</html>

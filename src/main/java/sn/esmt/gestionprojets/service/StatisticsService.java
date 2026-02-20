@@ -85,6 +85,8 @@ public class StatisticsService {
         for (Object[] row : results) {
             StatutProjet statut = (StatutProjet) row[0];
             String label = switch (statut) {
+
+                case PLANIFIE   -> "Planifie";
                 case EN_COURS   -> "En cours";
                 case TERMINE    -> "Terminé";
                 case SUSPENDU   -> "Suspendu";

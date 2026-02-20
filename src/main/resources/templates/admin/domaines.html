@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:replace="~{fragments/layout :: page(title='Domaines de recherche', content=~{::content})}">
+<content>
+
+  <div class="breadcrumb">
+    <a th:href="@{/dashboard}">Accueil</a>
+    <span class="separator">›</span>
+    <a th:href="@{/admin}">Admin</a>
+    <span class="separator">›</span>
+    <span class="current">Domaines</span>
+  </div>
+
+  <div class="flex-between mb-4">
+    <div>
+      <h2 style="font-family:var(--font-display);font-size:22px;font-weight:700">Domaines de recherche</h2>
+      <p class="text-muted text-sm mt-1" th:text="${domaines.size()} + ' domaines configurés'">0</p>
+    </div>
+    <button class="btn btn-accent" data-modal-open="createDomaineModal">+ Nouveau domaine</button>
+  </div>
+
+  <!-- Domaines Grid -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:20px">
+    <div class="card" th:each="domaine : ${domaines}">
+      <div class="card-body">
+        <div class="flex-between mb-2">
+          <div>
+            <span class="badge badge-accent" style="font-size:10px;margin-bottom:6px" th:text="${domaine.code}">CODE</span>
+            <div style="font-family:var(--font-display);font-size:16px;font-weight:600" th:text="${domaine.nom}">Nom</div>
+          </div>
+          <div style="font-size:32px;opacity:0.3">🏷️</div>
+        </div>
+        <p class="text-sm text-muted" th:if="${domaine.description}" th:text="${domaine.description}">Description</p>
+
+        <div class="flex-between mt-3" style="border-top:1px solid var(--border-light);padding-top:12px">
+          <span class="text-sm text-muted">
+            <strong class="text-primary" th:text="${domaine.projets?.size() ?: 0}">0</strong> projet(s)
+          </span>
+          <form th:action="@{/admin/domaines/{id}/delete(id=${domaine.id})}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit" class="btn btn-danger btn-sm"
+                    th:data-confirm="'Supprimer le domaine ' + ${domaine.nom} + ' ?'"
+                    onclick="return confirm(this.dataset.confirm)">🗑️ Supprimer</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <th:block th:if="${domaines == null or domaines.isEmpty()}">
+    <div class="empty-state card">
+      <div class="empty-icon">🏷️</div>
+      <div class="empty-title">Aucun domaine configuré</div>
+      <div class="empty-desc">Créez les domaines de recherche pour catégoriser les projets</div>
+      <button class="btn btn-primary" data-modal-open="createDomaineModal">+ Créer le premier domaine</button>
+    </div>
+  </th:block>
+
+  <!-- Modal: Créer domaine -->
+  <div class="modal-overlay" id="createDomaineModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Nouveau domaine de recherche</h3>
+        <button class="modal-close" data-modal-close>✕</button>
+      </div>
+      <form th:action="@{/admin/domaines}" method="post" th:object="${nouveauDomaine}">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Nom du domaine <span class="required">*</span></label>
+            <input type="text" name="nom" class="form-control"
+                   placeholder="Ex: Intelligence Artificielle" required/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Code <span class="required">*</span></label>
+            <input type="text" name="code" class="form-control"
+                   placeholder="Ex: IA" required
+                   style="text-transform:uppercase"/>
+          </div>
+          <div class="form-group mb-0">
+            <label class="form-label">Description</label>
+            <textarea name="description" class="form-control" rows="3"
+                      placeholder="Description du domaine de recherche..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-modal-close>Annuler</button>
+          <button type="submit" class="btn btn-accent">✅ Créer le domaine</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</content>
+</th:block>
+
+</body>
+</html>

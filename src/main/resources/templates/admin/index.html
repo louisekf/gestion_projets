@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:replace="~{fragments/layout :: page(title='Administration', content=~{::content})}">
+<content>
+
+  <div class="breadcrumb">
+    <a th:href="@{/dashboard}">Accueil</a>
+    <span class="separator">›</span>
+    <span class="current">Administration</span>
+  </div>
+
+  <div class="flex-between mb-4">
+    <div>
+      <h2 style="font-family:var(--font-display);font-size:22px;font-weight:700">Panneau d'administration</h2>
+      <p class="text-muted text-sm mt-1">Gestion globale du système</p>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="stat-grid mb-4">
+    <div class="stat-card primary">
+      <div class="stat-icon info">👥</div>
+      <div>
+        <div class="stat-value" th:text="${totalUsers}">0</div>
+        <div class="stat-label">Utilisateurs</div>
+      </div>
+    </div>
+    <div class="stat-card accent">
+      <div class="stat-icon accent">🏷️</div>
+      <div>
+        <div class="stat-value" th:text="${totalDomaines}">0</div>
+        <div class="stat-label">Domaines</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
+
+    <a th:href="@{/admin/users}" class="card" style="text-decoration:none;transition:var(--transition)" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+      <div class="card-body" style="text-align:center;padding:32px 20px">
+        <div style="font-size:40px;margin-bottom:12px">👥</div>
+        <div style="font-family:var(--font-display);font-size:18px;font-weight:600;margin-bottom:6px">Utilisateurs</div>
+        <div class="text-muted text-sm">Gérer les comptes, rôles et accès</div>
+      </div>
+    </a>
+
+    <a th:href="@{/admin/domaines}" class="card" style="text-decoration:none;transition:var(--transition)" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+      <div class="card-body" style="text-align:center;padding:32px 20px">
+        <div style="font-size:40px;margin-bottom:12px">🏷️</div>
+        <div style="font-family:var(--font-display);font-size:18px;font-weight:600;margin-bottom:6px">Domaines</div>
+        <div class="text-muted text-sm">Paramétrer les domaines de recherche</div>
+      </div>
+    </a>
+
+    <a th:href="@{/admin/import}" class="card" style="text-decoration:none;transition:var(--transition)" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+      <div class="card-body" style="text-align:center;padding:32px 20px">
+        <div style="font-size:40px;margin-bottom:12px">📤</div>
+        <div style="font-family:var(--font-display);font-size:18px;font-weight:600;margin-bottom:6px">Import CSV</div>
+        <div class="text-muted text-sm">Importer des projets en masse</div>
+      </div>
+    </a>
+
+    <a th:href="@{/statistics}" class="card" style="text-decoration:none;transition:var(--transition)" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+      <div class="card-body" style="text-align:center;padding:32px 20px">
+        <div style="font-size:40px;margin-bottom:12px">📈</div>
+        <div style="font-family:var(--font-display);font-size:18px;font-weight:600;margin-bottom:6px">Statistiques</div>
+        <div class="text-muted text-sm">Tableaux de bord et graphiques</div>
+      </div>
+    </a>
+
+  </div>
+
+</content>
+</th:block>
+
+</body>
+</html>

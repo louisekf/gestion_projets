@@ -10,6 +10,7 @@ import sn.esmt.gestionprojets.entity.enums.StatutProjet;
 import sn.esmt.gestionprojets.entity.User;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ProjetRepository extends JpaRepository<Projet, Long> {
@@ -78,4 +79,6 @@ public interface ProjetRepository extends JpaRepository<Projet, Long> {
      */
     @Query("SELECT AVG(p.niveauAvancement) FROM Projet p WHERE p.statut = 'EN_COURS'")
     Double findAverageAvancement();
+
+    Optional<Projet> findByTitreIgnoreCase(String titre);
 }

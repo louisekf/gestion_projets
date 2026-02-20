@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:replace="~{fragments/layout :: page(title='Gestion utilisateurs', content=~{::content})}">
+<content>
+
+  <div class="breadcrumb">
+    <a th:href="@{/dashboard}">Accueil</a>
+    <span class="separator">›</span>
+    <a th:href="@{/admin}">Admin</a>
+    <span class="separator">›</span>
+    <span class="current">Utilisateurs</span>
+  </div>
+
+  <div class="flex-between mb-4">
+    <div>
+      <h2 style="font-family:var(--font-display);font-size:22px;font-weight:700">Gestion des utilisateurs</h2>
+      <p class="text-muted text-sm mt-1" th:text="${users.size()} + ' utilisateurs enregistrés'">0 utilisateurs</p>
+    </div>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Rechercher un utilisateur..."/>
+    </div>
+    <select class="filter-select" id="filterStatut">
+      <option value="">Tous les statuts</option>
+      <option value="actif">Actif</option>
+      <option value="inactif">Inactif</option>
+    </select>
+    <select class="filter-select" id="filterDomaine">
+      <option value="">Tous les rôles</option>
+      <option value="user">USER</option>
+      <option value="manager">MANAGER</option>
+      <option value="admin">ADMIN</option>
+    </select>
+  </div>
+
+  <div class="card">
+    <div class="table-container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Utilisateur</th>
+            <th>Email</th>
+            <th>Rôle</th>
+            <th>Statut</th>
+            <th>Institution</th>
+            <th>Inscription</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="user : ${users}"
+              th:data-searchable="true"
+              th:data-statut="${user.enabled ? 'actif' : 'inactif'}"
+              th:data-domaine="${user.role?.name()?.toLowerCase()}">
+
+            <td>
+              <div class="flex-center gap-2">
+                <div class="participant-avatar"
+                     style="width:36px;height:36px;font-size:14px;background:var(--primary)"
+                     th:text="${user.nomComplet != null and !user.nomComplet.isEmpty()} ? ${user.nomComplet.substring(0,1).toUpperCase()} : 'U'">U</div>
+                <div>
+                  <div style="font-weight:500" th:text="${user.nomComplet ?: user.username}">Nom</div>
+                  <div class="text-sm text-muted" th:text="${user.telephone ?: ''}"></div>
+                </div>
+              </div>
+            </td>
+
+            <td class="text-sm" th:text="${user.email}"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7b1e161a12173b1e0355181416">[email&#160;protected]</a></td>
+
+            <td>
+              <form th:action="@{/admin/users/{id}/change-role(id=${user.id})}" method="post"
+                    style="display:inline-flex;align-items:center;gap:6px">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <select name="newRole"
+                        class="filter-select"
+                        style="padding:4px 28px 4px 8px;font-size:12px"
+                        onchange="this.form.submit()">
+                  <option value="USER"    th:selected="${user.role?.name() == 'USER'}">USER</option>
+                  <option value="MANAGER" th:selected="${user.role?.name() == 'MANAGER'}">MANAGER</option>
+                  <option value="ADMIN"   th:selected="${user.role?.name() == 'ADMIN'}">ADMIN</option>
+                </select>
+              </form>
+            </td>
+
+            <td>
+              <span th:class="${user.enabled} ? 'badge badge-success' : 'badge badge-danger'"
+                    th:text="${user.enabled} ? 'Actif' : 'Inactif'">Statut</span>
+            </td>
+
+            <td class="text-sm" th:text="${user.institution ?: '-'}">-</td>
+
+            <td class="text-sm font-mono"
+                th:text="${user.createdAt != null ? #temporals.format(user.createdAt, 'dd/MM/yy') : '-'}">-</td>
+
+            <td>
+              <div class="flex gap-2">
+
+                <!-- Toggle enabled -->
+                <form th:action="@{/admin/users/{id}/toggle-enabled(id=${user.id})}" method="post">
+                  <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                  <button type="submit"
+                          th:class="${user.enabled} ? 'btn btn-warning btn-sm' : 'btn btn-success btn-sm'"
+                          th:title="${user.enabled} ? 'Désactiver' : 'Activer'"
+                          th:text="${user.enabled} ? '⏸' : '▶'">⏸</button>
+                </form>
+
+                <!-- Delete -->
+                <form th:action="@{/admin/users/{id}/delete(id=${user.id})}" method="post">
+                  <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                  <button type="submit"
+                          class="btn btn-danger btn-sm"
+                          th:data-confirm="'Supprimer ' + ${user.nomComplet ?: user.email} + ' ?'"
+                          onclick="return confirm(this.dataset.confirm)">🗑️</button>
+                </form>
+
+              </div>
+            </td>
+
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <th:block th:if="${users == null or users.isEmpty()}">
+      <div class="empty-state">
+        <div class="empty-icon">👥</div>
+        <div class="empty-title">Aucun utilisateur</div>
+      </div>
+    </th:block>
+
+    <div class="card-footer">
+      <span class="text-sm text-muted" th:text="${users.size()} + ' utilisateurs au total'">0</span>
+    </div>
+  </div>
+
+</content>
+</th:block>
+
+</body>
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head th:replace="~{fragments/layout :: head}"></head>
+<body>
+
+<th:block th:replace="~{fragments/layout :: page(title='Tableau de bord', content=~{::content})}">
+    <content>
+
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <span class="current">🏠 Tableau de bord</span>
+        </div>
+
+        <!-- Welcome Banner -->
+        <div class="card mb-4" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); border: none; color: white;">
+            <div class="card-body" style="padding: 28px 32px;">
+                <div class="flex-between">
+                    <div>
+                        <p style="font-size:13px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">
+                            Bienvenue
+                        </p>
+                        <h2 style="font-family:var(--font-display);font-size:24px;font-weight:700;color:white;margin-bottom:8px"
+                            th:text="${nomComplet}">Utilisateur</h2>
+                        <p style="color:rgba(255,255,255,0.7);font-size:14px">
+                            Vous êtes connecté en tant que
+                            <strong style="color:var(--accent-light)" th:text="${role}">ROLE</strong>
+                        </p>
+                    </div>
+                    <div style="font-size:60px;opacity:0.3">📊</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stat Cards -->
+        <div class="stat-grid">
+            <div class="stat-card accent">
+                <div class="stat-icon accent">📁</div>
+                <div>
+                    <div class="stat-value" th:text="${nombreProjets}">0</div>
+                    <div class="stat-label">Projets visibles</div>
+                </div>
+            </div>
+
+            <!-- Stats for managers/admins only -->
+            <th:block sec:authorize="hasAnyRole('MANAGER','ADMIN')">
+                <div class="stat-card success">
+                    <div class="stat-icon success">✅</div>
+                    <div>
+                        <div class="stat-value"
+                             th:text="${projets.?[statut?.name() == 'TERMINE'].size()}">0</div>
+                        <div class="stat-label">Terminés</div>
+                    </div>
+                </div>
+                <div class="stat-card info">
+                    <div class="stat-icon info">🔄</div>
+                    <div>
+                        <div class="stat-value"
+                             th:text="${projets.?[statut?.name() == 'EN_COURS'].size()}">0</div>
+                        <div class="stat-label">En cours</div>
+                    </div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-icon warning">⏸️</div>
+                    <div>
+                        <div class="stat-value"
+                             th:text="${projets.?[statut?.name() == 'SUSPENDU'].size()}">0</div>
+                        <div class="stat-label">Suspendus</div>
+                    </div>
+                </div>
+            </th:block>
+
+            <!-- For simple users -->
+            <th:block sec:authorize="hasRole('USER')">
+                <div class="stat-card success">
+                    <div class="stat-icon success">🔄</div>
+                    <div>
+                        <div class="stat-value"
+                             th:text="${projets.?[statut?.name() == 'EN_COURS'].size()}">0</div>
+                        <div class="stat-label">En cours</div>
+                    </div>
+                </div>
+            </th:block>
+        </div>
+
+        <!-- Recent Projects -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <span class="card-title">Projets récents</span>
+                <a th:href="@{/projets}" class="btn btn-outline btn-sm">Voir tous →</a>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <th:block th:if="${projets == null or projets.isEmpty()}">
+                    <div class="empty-state">
+                        <div class="empty-icon">📂</div>
+                        <div class="empty-title">Aucun projet</div>
+                        <div class="empty-desc">Commencez par créer votre premier projet</div>
+                        <a th:href="@{/projets/nouveau}" class="btn btn-primary">+ Créer un projet</a>
+                    </div>
+                </th:block>
+
+                <th:block th:if="${projets != null and !projets.isEmpty()}">
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Titre</th>
+                                <th>Domaine</th>
+                                <th>Statut</th>
+                                <th>Avancement</th>
+                                <th>Responsable</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="projet, stat : ${projets}" th:if="${stat.index < 10}">
+                                <td>
+                                    <a th:href="@{/projets/{id}(id=${projet.id})}"
+                                       style="font-weight:500;color:var(--primary)"
+                                       th:text="${projet.titre}">Titre</a>
+                                    <div class="text-sm text-muted mt-1"
+                                         th:text="${projet.institution}">Institution</div>
+                                </td>
+                                <td>
+                  <span class="badge badge-accent"
+                        th:text="${projet.domaine?.nom ?: '-'}">Domaine</span>
+                                </td>
+                                <td>
+                  <span th:classappend="${projet.statut?.name() == 'EN_COURS'} ? 'badge-info' :
+                                        (${projet.statut?.name() == 'TERMINE'} ? 'badge-success' :
+                                        (${projet.statut?.name() == 'SUSPENDU'} ? 'badge-warning' : 'badge-gray'))"
+                        class="badge"
+                        th:text="${projet.statut}">Statut</span>
+                                </td>
+                                <td style="min-width: 140px">
+                                    <div class="flex-center gap-2">
+                                        <div class="progress" style="flex:1">
+                                            <div class="progress-bar"
+                                                 th:classappend="${(projet.niveauAvancement ?: 0) >= 75} ? 'high' :
+                                           (${(projet.niveauAvancement ?: 0) >= 40} ? 'medium' : 'low')"
+                                                 th:style="'width:' + ${projet.niveauAvancement ?: 0} + '%'"></div>
+                                        </div>
+                                        <span class="text-sm font-mono"
+                                              th:text="${projet.niveauAvancement ?: 0} + '%'">0%</span>
+                                    </div>
+                                </td>
+                                <td class="text-sm"
+                                    th:text="${projet.responsable?.nomComplet ?: '-'}">-</td>
+                                <td>
+                                    <a th:href="@{/projets/{id}(id=${projet.id})}"
+                                       class="btn btn-outline btn-sm">Voir</a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </th:block>
+            </div>
+            <th:block th:if="${projets != null and !projets.isEmpty()}">
+                <div class="card-footer flex-between">
+        <span class="text-sm text-muted"
+              th:text="${projets.size()} + ' projets au total'">0 projets</span>
+                    <a th:href="@{/projets/nouveau}" class="btn btn-accent btn-sm">+ Nouveau projet</a>
+                </div>
+            </th:block>
+        </div>
+
+    </content>
+</th:block>
+
+</body>
+</html>

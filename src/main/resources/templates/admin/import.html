@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:replace="~{fragments/layout :: page(title='Import CSV', content=~{::content})}">
+<content>
+
+  <div class="breadcrumb">
+    <a th:href="@{/dashboard}">Accueil</a>
+    <span class="separator">›</span>
+    <a th:href="@{/admin}">Admin</a>
+    <span class="separator">›</span>
+    <span class="current">Import CSV</span>
+  </div>
+
+  <div style="max-width: 760px;">
+
+    <div class="flex-between mb-4">
+      <div>
+        <h2 style="font-family:var(--font-display);font-size:22px;font-weight:700">Import de projets CSV</h2>
+        <p class="text-muted text-sm mt-1">Importez des projets en masse depuis un fichier CSV</p>
+      </div>
+    </div>
+
+    <!-- Result messages -->
+    <th:block th:if="${importSuccess}">
+      <div class="alert alert-success fade-in">
+        <span class="alert-icon">✅</span>
+        <div>
+          <strong>Import réussi !</strong>
+          <div th:text="${importSuccess}"></div>
+        </div>
+      </div>
+    </th:block>
+
+    <th:block th:if="${importErrors != null and !importErrors.isEmpty()}">
+      <div class="alert alert-warning fade-in">
+        <span class="alert-icon">⚠️</span>
+        <div>
+          <strong>Import avec avertissements</strong>
+          <ul style="margin-top:6px;padding-left:16px">
+            <li th:each="err : ${importErrors}" th:text="${err}" style="font-size:13px;margin-top:4px"></li>
+          </ul>
+        </div>
+      </div>
+    </th:block>
+
+    <!-- Format spec -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <span class="card-title">📋 Format attendu du fichier CSV</span>
+      </div>
+      <div class="card-body">
+        <p class="text-sm text-muted mb-3">Le fichier CSV doit contenir les colonnes suivantes (avec en-tête) :</p>
+
+        <div class="table-container" style="margin-bottom:16px">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Colonne</th>
+                <th>Description</th>
+                <th>Obligatoire</th>
+                <th>Exemple</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code class="font-mono" style="font-size:12px;color:var(--primary)">titre</code></td>
+                <td>Titre du projet</td>
+                <td><span class="badge badge-danger">Oui</span></td>
+                <td class="text-sm text-muted">Système de détection IA</td>
+              </tr>
+              <tr>
+                <td><code class="font-mono" style="font-size:12px;color:var(--primary)">description</code></td>
+                <td>Description du projet</td>
+                <td><span class="badge badge-gray">Non</span></td>
+                <td class="text-sm text-muted">Développement d'un...</td>
+              </tr>
+              <tr>
+                <td><code class="font-mono" style="font-size:12px;color:var(--primary)">domaine_code</code></td>
+                <td>Code du domaine de recherche</td>
+                <td><span class="badge badge-danger">Oui</span></td>
+                <td class="text-sm text-muted">IA, BIO, INFO</td>
+              </tr>
+              <tr>
+                <td><code class="font-mono" style="font-size:12px;color:var(--primary)">statut</code></td>
+                <td>Statut du projet</td>
+                <td><span class="badge badge-gray">Non</span></td>
+                <td class="text-sm text-muted">EN_COURS, TERMINE, PLANIFIE</td>
+              </tr>
+              <tr>
+                <td><code class="font-mono" style="font-size:12px;color:var(--primary)">date_debut</code></td>
+                <td>Date de début (yyyy-MM-dd)</td>
+                <td><span class="badge badge-gray">Non</span></td>
+                <td class="text-sm text-muted">2024-01-15</td>
+              </tr>
+              <tr>
+                <td><code class="font-mono" style="font-size:12px;color:var(--primary)">date_fin</code></td>
+                <td>Date de fin (yyyy-MM-dd)</td>
+                <td><span class="badge badge-gray">Non</span></td>
+                <td class="text-sm text-muted">2025-06-30</td>
+              </tr>
+              <tr>
+                <td><code class="font-mono" style="font-size:12px;color:var(--primary)">budget_estime</code></td>
+                <td>Budget en FCFA</td>
+                <td><span class="badge badge-gray">Non</span></td>
+                <td class="text-sm text-muted">5000000</td>
+              </tr>
+              <tr>
+                <td><code class="font-mono" style="font-size:12px;color:var(--primary)">institution</code></td>
+                <td>Institution responsable</td>
+                <td><span class="badge badge-gray">Non</span></td>
+                <td class="text-sm text-muted">Plateforme nationale</td>
+              </tr>
+              <tr>
+                <td><code class="font-mono" style="font-size:12px;color:var(--primary)">niveau_avancement</code></td>
+                <td>Avancement de 0 à 100</td>
+                <td><span class="badge badge-gray">Non</span></td>
+                <td class="text-sm text-muted">75</td>
+              </tr>
+              <tr>
+                <td><code class="font-mono" style="font-size:12px;color:var(--primary)">responsable_email</code></td>
+                <td>Email du responsable</td>
+                <td><span class="badge badge-gray">Non</span></td>
+                <td class="text-sm text-muted"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2f4c474a496f4a5c425b015c41">[email&#160;protected]</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Example CSV -->
+        <div style="background:var(--bg);border-radius:8px;border:1px solid var(--border);padding:14px;font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);overflow-x:auto">
+          <div style="color:var(--text-muted);margin-bottom:8px;font-family:var(--font-body);font-size:11px;text-transform:uppercase;letter-spacing:0.5px">Exemple de fichier CSV :</div>
+          titre;description;domaine_code;statut;date_debut;date_fin;budget_estime;institution;niveau_avancement;responsable_email<br/>
+          Détection précoce maladies;Projet IA santé;IA;EN_COURS;2024-01-01;2025-12-31;8000000;UCAD;45;<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="72021b1700001732071113165c011c">[email&#160;protected]</a><br/>
+          Optimisation agricole;Système IoT champs;AGRI;PLANIFIE;2024-06-01;;3500000;Université de Dakar;0;<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="503d312239351035233d247e233e">[email&#160;protected]</a>
+        </div>
+
+        <div class="mt-3">
+          <a href="#" onclick="downloadTemplate()" class="btn btn-outline btn-sm">
+            ⬇️ Télécharger le modèle CSV
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upload form -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">📤 Importer un fichier</span>
+      </div>
+      <div class="card-body">
+
+        <form th:action="@{/admin/import}" method="post" enctype="multipart/form-data" id="importForm">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+          <!-- Drop zone -->
+          <div class="file-drop-zone" id="dropZone" style="margin-bottom:20px">
+            <div class="file-drop-icon">📂</div>
+            <div class="file-drop-text">Glissez votre fichier CSV ici ou cliquez pour sélectionner</div>
+            <div class="file-drop-hint">Formats acceptés : .csv — Séparateur : point-virgule (;)</div>
+            <input type="file" id="csvFile" name="file" accept=".csv" style="display:none" required/>
+          </div>
+
+          <!-- File preview -->
+          <div id="filePreview" style="display:none;margin-bottom:20px">
+            <div class="alert alert-info" style="margin-bottom:0">
+              <span class="alert-icon">📄</span>
+              <div>
+                <strong id="fileName">fichier.csv</strong>
+                <div class="text-sm mt-1">Taille : <span id="fileSize">-</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Options -->
+          <div class="card" style="background:var(--bg);border:1px dashed var(--border);margin-bottom:20px">
+            <div class="card-body" style="padding:16px">
+              <div style="font-weight:500;font-size:13px;margin-bottom:12px">Options d'import</div>
+
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px">
+                  <input type="checkbox" name="skipErrors" value="true" style="accent-color:var(--primary)"/>
+                  Ignorer les lignes avec erreurs (continuer l'import)
+                </label>
+                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px">
+                  <input type="checkbox" name="updateExisting" value="true" style="accent-color:var(--primary)"/>
+                  Mettre à jour les projets existants (par titre)
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex gap-3">
+            <button type="submit" class="btn btn-accent btn-lg" id="submitBtn">
+              📤 Lancer l'import
+            </button>
+            <a th:href="@{/admin}" class="btn btn-outline btn-lg">Annuler</a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Import history (if available) -->
+  <th:block th:if="${importHistory != null and !importHistory.isEmpty()}">
+    <div style="max-width:760px;margin-top:20px">
+      <div class="card">
+        <div class="card-header"><span class="card-title">🕒 Historique des imports</span></div>
+        <div class="table-container">
+          <table class="table">
+            <thead><tr><th>Date</th><th>Fichier</th><th>Lignes</th><th>Succès</th><th>Erreurs</th></tr></thead>
+            <tbody>
+              <tr th:each="h : ${importHistory}">
+                <td class="text-sm font-mono" th:text="${h.date}">-</td>
+                <td class="text-sm" th:text="${h.filename}">-</td>
+                <td th:text="${h.total}">0</td>
+                <td><span class="badge badge-success" th:text="${h.success}">0</span></td>
+                <td><span class="badge badge-danger" th:text="${h.errors}">0</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </th:block>
+
+</content>
+</th:block>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// Download CSV template
+function downloadTemplate() {
+  const header = 'titre;description;domaine_code;statut;date_debut;date_fin;budget_estime;institution;niveau_avancement;responsable_email';
+  const example1 = 'Mon projet de recherche;Description du projet;IA;EN_COURS;2024-01-01;2025-12-31;5000000;Plateforme nationale;30;responsable@esmt.sn';
+  const example2 = 'Deuxième projet;Description;BIO;PLANIFIE;2024-06-01;;2000000;UCAD;0;';
+  const content = [header, example1, example2].join('\n');
+
+  const blob    = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+  const url     = URL.createObjectURL(blob);
+  const a       = document.createElement('a');
+  a.href = url; a.download = 'modele_import_projets.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+
+</body>
+</html>

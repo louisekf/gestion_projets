@@ -3,10 +3,12 @@ package sn.esmt.gestionprojets.security;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import sn.esmt.gestionprojets.entity.User;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Wrapper Spring Security autour de l'entité User.
@@ -33,7 +35,7 @@ import java.util.List;
  *  @AuthenticationPrincipal UserPrincipal principal
  *  User user = principal.getUser();
  */
-public class UserPrincipal implements UserDetails {
+public class UserPrincipal implements UserDetails , OAuth2User {
 
     public User getUser() {
         return user;
@@ -46,11 +48,15 @@ public class UserPrincipal implements UserDetails {
      */
 
     private final User user;
+    private Map<String, Object> attributes;
 
+    public UserPrincipal(User user, Map<String, Object> attributes) {
+        this.user = user;
+        this.attributes = attributes;
+    }
     public UserPrincipal(User user) {
         this.user = user;
     }
-
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -101,6 +107,21 @@ public class UserPrincipal implements UserDetails {
 
     public String getNomComplet() {
         return user.getNomComplet();
+    }
+
+    // ── OAuth2User ───────────────────────────────────────────────────────────
+    @Override
+    public Map<String, Object> getAttributes() {
+        return attributes != null ? attributes : Map.of();
+    }
+
+    @Override
+    public String getName() {
+        // Requis par OAuth2User — on retourne l'email
+        return user.getEmail();
+    }
+    public static UserPrincipal create(User user, Map<String, Object> attributes) {
+        return new UserPrincipal(user, attributes);
     }
 }
 
